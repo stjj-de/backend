@@ -2,10 +2,14 @@ package de.stjj.backend.models
 
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import io.jooby.Value
+import io.jooby.exception.TypeMismatchException
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 
 object Users: IntIdTable("users"), APIModel {
     val username = varchar("username", 30).uniqueIndex()
@@ -28,6 +32,18 @@ object Users: IntIdTable("users"), APIModel {
             APIField.C("imageID", imageID),
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
     )
+
+    val getIDGetOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Users)
+
+    override val getOneSelectExpression: (Value) -> Op<Boolean> = { idValue ->
+        try {
+            getIDGetOneSelectExpression(idValue)
+        } catch (e: TypeMismatchException) {
+            with(SqlExpressionBuilder) {
+                username eq idValue.value()
+            }
+        }
+    }
 }
 
 class User(id: EntityID<Int>): IntEntity(id) {

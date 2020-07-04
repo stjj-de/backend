@@ -16,6 +16,8 @@ object Churches: IntIdTable("churches"), APIModel {
             APIField.C("id", id),
             APIField.C("title", title)
     )
+
+    override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Churches)
 }
 
 class Church(id: EntityID<Int>): IntEntity(id) {
