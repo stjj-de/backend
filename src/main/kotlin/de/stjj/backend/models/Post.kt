@@ -1,7 +1,6 @@
 package de.stjj.backend.models
 
-import de.stjj.backend.utils.APIField
-import de.stjj.backend.utils.APIModel
+import de.stjj.backend.utils.*
 import io.jooby.Context
 import io.jooby.Value
 import org.jetbrains.exposed.dao.IntEntity
@@ -48,10 +47,19 @@ object Posts: IntIdTable("posts"), APIModel {
             else Posts.id eq idValue.intValue()
         }
     }
-    override val getAllSelectExpression: ((ctx: Context) -> Op<Boolean>?)? = { ctx ->
-        if (ctx.query("onlyRelevant").booleanValue(false))
-            with(SqlExpressionBuilder) { relevantUntil greater LocalDateTime.now() }
-        else null
+    override val getAllSelectExpression = fun(ctx: Context): Op<Boolean>? {
+        val onlyRelevant = ctx.query("onlyRelevant").booleanValue(false)
+        val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
+
+        if (!onlyPublished && ctx.user?.role?.isCompatible(User.Role.EDITOR) != true)
+            throw InsufficientPermissionsException("You are not allowed to access posts which were not published yet.")
+
+        return if (onlyPublished || onlyRelevant) with(SqlExpressionBuilder) {
+            mutableListOf<Op<Boolean>>().apply {
+                addIf(onlyRelevant) { relevantUntil greater LocalDateTime.now() }
+                addIf(onlyPublished) { publishedAt lessEq LocalDateTime.now() }
+            }.combine()
+        } else null
     }
 }
 

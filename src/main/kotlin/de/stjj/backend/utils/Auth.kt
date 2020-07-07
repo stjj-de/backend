@@ -21,6 +21,13 @@ class AuthenticationRequiredException: APIException(
         "You must be authenticated to use this endpoint."
 )
 
+open class InsufficientPermissionsException(message: String = "You are not allowed to do this.", details: Map<String, Any?>? = null): APIException(
+        StatusCode.FORBIDDEN,
+        "INSUFFICIENT_PERMISSIONS",
+        message,
+        details
+)
+
 val Context.userID get() = attributes["userID"] as Int?
 val Context.user get() = attributes.getOrPut("user") {
     userID?.let { id -> transaction { User.findById(id) } }

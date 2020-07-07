@@ -58,6 +58,8 @@ class User(id: EntityID<Int>): IntEntity(id) {
     enum class Role {
         NONE,
         EDITOR,
-        ADMINISTRATOR
+        ADMINISTRATOR;
+
+        fun isCompatible(role: Role) = ordinal >= role.ordinal
     }
 }

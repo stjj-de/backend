@@ -47,9 +47,7 @@ class UnknownFieldException(fieldName: String): APIException(
         mapOf("fieldName" to fieldName)
 )
 
-class FieldAccessNotAllowedException(fieldName: String): APIException(
-        StatusCode.FORBIDDEN,
-        "FIELD_ACCESS_NOT_ALLOWED",
+class FieldAccessNotAllowedException(fieldName: String): InsufficientPermissionsException(
         "You are not allowed to access the field named $fieldName on this model.",
         mapOf("fieldName" to fieldName)
 )
