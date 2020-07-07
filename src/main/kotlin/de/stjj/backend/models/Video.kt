@@ -22,9 +22,9 @@ object Videos: IntIdTable("videos"), APIModel {
     override val defaultFields = "id,title,publishedAt,youtubeVideoID"
     override val writeAllowedRole = User.Role.EDITOR
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("title", title),
-            APIField.C("publishedAt", publishedAt),
+            APIField.C("id", id, true),
+            APIField.C("title", title, true),
+            APIField.C("publishedAt", publishedAt, true),
             APIField.C("youtubeVideoID", youtubeVideoID)
     )
     override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Videos)

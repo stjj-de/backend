@@ -13,8 +13,8 @@ object Churches: IntIdTable("churches"), APIModel {
     override val defaultFields = "id,title"
     override val writeAllowedRole = User.Role.EDITOR
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("title", title)
+            APIField.C("id", id, true),
+            APIField.C("title", title, true)
     )
 
     override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Churches)

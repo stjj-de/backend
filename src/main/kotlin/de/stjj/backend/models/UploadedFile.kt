@@ -23,11 +23,11 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
 
     override val defaultFields = "id,title,mimeType"
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("title", title),
-            APIField.C("mimeType", mimeType),
-            APIField.C("alias", alias),
-            APIField.C("uploadedAt", uploadedAt)
+            APIField.C("id", id, true),
+            APIField.C("title", title, true),
+            APIField.C("mimeType", mimeType, true),
+            APIField.C("alias", alias, true),
+            APIField.C("uploadedAt", uploadedAt, true)
     )
     override val writeAllowedRole = User.Role.EDITOR
     override val getOneSelectExpression: (idValue: Value) -> Op<Boolean> = { idValue ->

@@ -44,12 +44,12 @@ object Events: IntIdTable("events"), APIModel {
 
     override val defaultFields = "id,title,color,date,endDate"
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("title", title),
+            APIField.C("id", id, true),
+            APIField.C("title", title, true),
             APIField.C("creator", creator),
-            APIField.C("color", color),
+            APIField.C("color", color, true),
             APIField.C("description", description),
-            APIField.C("date", date),
+            APIField.C("date", date, true),
             APIField.C("endDate", endDate),
             APIField.C("relatedPost", relatedPost)
     )

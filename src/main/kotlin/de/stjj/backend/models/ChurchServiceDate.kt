@@ -16,8 +16,8 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
     override val defaultFields = "id,date,church,description"
     override val writeAllowedRole = User.Role.EDITOR
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("date", date),
+            APIField.C("id", id, true),
+            APIField.C("date", date, true),
             APIField.C("church", church),
             APIField.C("description", description)
     )

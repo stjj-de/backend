@@ -36,7 +36,7 @@ interface APIModel {
 }
 
 sealed class APIField(val name: String, val role: User.Role) {
-    class C(name: String, val column: Column<*>, role: User.Role = User.Role.NONE): APIField(name, role)
+    class C(name: String, val column: Column<*>, val sortable: Boolean = false, role: User.Role = User.Role.NONE): APIField(name, role)
     class G(name: String, val dependsOn: Set<Column<*>> = emptySet(), role: User.Role = User.Role.NONE, val getter: (ResultRow) -> Any?): APIField(name, role)
 }
 
@@ -44,6 +44,13 @@ class UnknownFieldException(fieldName: String): APIException(
         StatusCode.BAD_REQUEST,
         "UNKNOWN_FIELD",
         "There is no field named $fieldName on this model.",
+        mapOf("fieldName" to fieldName)
+)
+
+class FieldNotAllowedForSortingException(fieldName: String): APIException(
+        StatusCode.BAD_REQUEST,
+        "FIELD_NOT_ALLOWED_FOR_SORTING",
+        "You can not sort by the field named $fieldName.",
         mapOf("fieldName" to fieldName)
 )
 
@@ -61,9 +68,19 @@ private data class ParseResult(
 fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
     if (model !is Table) throw Error("${model::class.simpleName} is not a Table")
 
+    fun getAPIField(name: String) = model.apiFields.find { it.name == name } ?: throw FieldNotAllowedForSortingException(name)
+
+    fun getSortColumn(ctx: Context): APIField.C? {
+        val name = ctx.query("sortBy").valueOrNull()
+        val column = name?.let { getAPIField(it) } ?: return null
+        if (column !is APIField.C || !column.sortable) throw FieldNotAllowedForSortingException(name)
+        return column
+    }
+
     fun parseFields(ctx: Context): ParseResult {
         val fieldNames = ctx.query("fields").value(model.defaultFields).split(",")
-        val requestedFields = fieldNames.map { name -> model.apiFields.find { it.name == name } ?: throw UnknownFieldException(name) }
+        val requestedFields = fieldNames.map(::getAPIField)
+
         for (field in requestedFields) {
             val userRoleLevel = ctx.user?.role?.ordinal ?: 0
             val requiredLevel = field.role.ordinal
@@ -98,10 +115,13 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
         get("/") {
             val (limit, offset) = ctx.limitAndOffset
             val parseResult = parseFields(ctx)
+            val sortColumn = getSortColumn(ctx)
+            val order = if (ctx.query("asc").booleanValue(true)) SortOrder.ASC else SortOrder.DESC
             val rows = transaction {
                 model
                         .slice(*parseResult.columns.toTypedArray())
                         .run { model.getAllSelectExpression?.invoke(ctx)?.let { select { it } } ?: selectAll() }
+                        .run { sortColumn?.let { orderBy(it.column, order) } ?: this }
                         .limit(limit + 1, offset.toLong())
                         .toList()
             }

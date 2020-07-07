@@ -25,11 +25,11 @@ object Posts: IntIdTable("posts"), APIModel {
 
     override val defaultFields = "slug,title,publishedAt,excerpt"
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("slug", slug),
-            APIField.C("title", title),
-            APIField.C("publishedAt", publishedAt),
-            APIField.C("relevantUntil", relevantUntil),
+            APIField.C("id", id, true),
+            APIField.C("slug", slug, true),
+            APIField.C("title", title, true),
+            APIField.C("publishedAt", publishedAt, true),
+            APIField.C("relevantUntil", relevantUntil, true),
             APIField.C("excerpt", excerpt),
             APIField.C("content", content),
             APIField.G("authors", setOf(id)) { row ->

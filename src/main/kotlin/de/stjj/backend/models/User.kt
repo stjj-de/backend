@@ -24,11 +24,11 @@ object Users: IntIdTable("users"), APIModel {
     override val defaultFields = "id,displayName,imageID"
     override val writeAllowedRole = User.Role.ADMINISTRATOR
     override val apiFields = setOf(
-            APIField.C("id", id),
-            APIField.C("username", username),
-            APIField.C("realName", realName),
-            APIField.C("position", position),
-            APIField.C("role", role),
+            APIField.C("id", id, true),
+            APIField.C("username", username, true),
+            APIField.C("realName", realName, true),
+            APIField.C("position", position, true),
+            APIField.C("role", role, true),
             APIField.C("imageID", imageID),
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
     )
