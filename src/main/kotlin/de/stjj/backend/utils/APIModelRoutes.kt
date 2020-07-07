@@ -16,6 +16,7 @@ interface APIModel {
     val defaultFields: String
     val apiFields: Set<APIField>
     val getOneSelectExpression: (idValue: Value) -> Op<Boolean>
+    val getAllSelectExpression: ((ctx: Context) -> Op<Boolean>?)? get() = null
 
     class InvalidResourceIDException(
             message: String = "The specified resource ID is invalid."
@@ -78,16 +79,20 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
         requestedGetterFields.forEach { columns.addAll(it.dependsOn) }
 
         return ParseResult(columns) { row ->
-            requestedFields.mapNotNull { field ->
-                val fieldValue =
-                        if (field is APIField.C) {
-                            val value = row[field.column]
-                            if (value is DaoEntityID<*>) value.value else value
-                        } else if (field is APIField.G) field.getter(row)
-                        else null
+            val data = mutableMapOf<String, Any?>()
 
-                fieldValue?.let { value -> field.name to value }
-            }.toMap()
+            for (field in requestedFields) {
+                val value =
+                        if (field is APIField.C) {
+                            val v = row[field.column]
+                            if (v is DaoEntityID<*>) v.value else v
+                        } else if (field is APIField.G) field.getter(row)
+                        else continue
+
+                data[field.name] = value
+            }
+
+            data
         }
     }
 
@@ -98,7 +103,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
             val rows = transaction {
                 model
                         .slice(*parseResult.columns.toTypedArray())
-                        .selectAll()
+                        .run { model.getAllSelectExpression?.invoke(ctx)?.let { select { it } } ?: selectAll() }
                         .limit(limit + 1, offset.toLong())
                         .toList()
             }
@@ -125,5 +130,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
             if (row == null) ctx.responseCode = StatusCode.NOT_FOUND
             mapOf("data" to row?.let { parseResult.resultRowMapper(it) })
         }
+
+        // TODO: Allow updates
     }
 }

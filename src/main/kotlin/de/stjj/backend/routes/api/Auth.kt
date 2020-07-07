@@ -53,13 +53,13 @@ fun Kooby.authRoutes() {
         }
 
         delete("/") {
-            // Logout
+            // TODO: Logout
         }
 
         get("/me") { ctx ->
             val user = ctx.user
             if (user == null) throw AuthenticationRequiredException()
-            else ctx.sendRedirect("/api/users/${user.id.value}")
+            else mapOf("id" to user.id.value)
         }
     }
 }

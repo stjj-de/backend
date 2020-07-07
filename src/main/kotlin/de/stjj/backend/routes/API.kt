@@ -6,6 +6,8 @@ import io.jooby.Kooby
 @ExperimentalStdlibApi
 fun Kooby.apiRoutes() {
     path("/api") {
+        // TODO: Add caching where appropriate
+
         authRoutes()
         churchServiceDatesRoutes()
         churchesRoutes()
@@ -14,5 +16,6 @@ fun Kooby.apiRoutes() {
         uploadsRoutes()
         usersRoutes()
         videosRoutes()
+        contentsRoutes()
     }
 }

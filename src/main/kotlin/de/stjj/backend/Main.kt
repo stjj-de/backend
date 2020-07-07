@@ -15,6 +15,7 @@ import de.stjj.backend.utils.json.moshi
 import io.jooby.MediaType
 import io.jooby.RouterOption
 import io.jooby.StatusCode
+import io.jooby.exception.NotFoundException
 import io.jooby.exception.TypeMismatchException
 import io.jooby.runApp
 import org.jetbrains.exposed.sql.Database
@@ -58,6 +59,11 @@ fun main(args: Array<String>) {
             ))
         }
 
+        error(NotFoundException::class.java) { ctx, _, _ ->
+            ctx.responseCode = StatusCode.NOT_FOUND
+            ctx.send("")
+        }
+
         error(Exception::class.java) { ctx, e, _ ->
             ctx.responseCode = StatusCode.SERVER_ERROR
             ctx.render(APIErrorResponse(
@@ -73,7 +79,7 @@ fun main(args: Array<String>) {
             port = 8000
         }
 
-        routerOptions(RouterOption.IGNORE_CASE, RouterOption.IGNORE_TRAILING_SLASH)
+        routerOptions(RouterOption.IGNORE_TRAILING_SLASH)
     }
 }
 
@@ -87,6 +93,16 @@ fun connectToDatabase() {
     Database.connect("jdbc:mysql://$host:$port/$database", user = user, password = password)
 
     transaction {
-        SchemaUtils.createMissingTablesAndColumns(Churches, ChurchServiceDates, Events, Posts, UploadedFiles, Users, Videos)
+        SchemaUtils.createMissingTablesAndColumns(
+                Churches,
+                ChurchServiceDates,
+                Events,
+                Posts,
+                PostAuthors,
+                UploadedFiles,
+                Users,
+                Videos,
+                Contents
+        )
     }
 }

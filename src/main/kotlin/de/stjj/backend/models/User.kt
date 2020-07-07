@@ -22,7 +22,7 @@ object Users: IntIdTable("users"), APIModel {
     val authToken = char("auth_token", 50).nullable().uniqueIndex()
 
     override val defaultFields = "id,displayName,imageID"
-    override val writeAllowedRole = User.Role.EDITOR
+    override val writeAllowedRole = User.Role.ADMINISTRATOR
     override val apiFields = setOf(
             APIField.C("id", id),
             APIField.C("username", username),
@@ -32,16 +32,13 @@ object Users: IntIdTable("users"), APIModel {
             APIField.C("imageID", imageID),
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
     )
-
     val getIDGetOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Users)
 
     override val getOneSelectExpression: (Value) -> Op<Boolean> = { idValue ->
         try {
             getIDGetOneSelectExpression(idValue)
         } catch (e: TypeMismatchException) {
-            with(SqlExpressionBuilder) {
-                username eq idValue.value()
-            }
+            with(SqlExpressionBuilder) { username eq idValue.value() }
         }
     }
 }
