@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
 
     runApp(args) {
         encoder { _, value -> gson.toJson(value).toByteArray() }
-        decoder(MediaType.json) { ctx, type -> moshi.adapter<Any>(type).fromJson(ctx.body().value())!! }
+        decoder(MediaType.json) { ctx, type -> moshi.adapter<Any>(type).failOnUnknown().fromJson(ctx.body().value())!! }
 
         before { ctx -> ctx.setResponseHeader("Server", "STJJ Backend") }
         enableAuth()

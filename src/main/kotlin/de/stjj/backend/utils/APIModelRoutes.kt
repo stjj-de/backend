@@ -71,7 +71,7 @@ private data class ParseResult(
 fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
     if (model !is Table) throw Error("${model::class.simpleName} is not a Table")
 
-    fun getAPIField(name: String) = model.apiFields.find { it.name == name } ?: throw FieldNotAllowedForSortingException(name)
+    fun getAPIField(name: String) = model.apiFields.find { it.name == name } ?: throw UnknownFieldException(name)
 
     fun getSortColumn(ctx: Context): APIField.C? {
         val name = ctx.query("sortBy").valueOrNull()
@@ -151,7 +151,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
         }
 
         post("/") {
-            if (ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
+            if (!ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
                 throw InsufficientPermissionsException(
                         "You are not allowed to create a new entity of this model.",
                         mapOf(

@@ -13,8 +13,10 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 class InvalidEventFilterException: APIException(
@@ -108,15 +110,20 @@ object Events: IntIdTable("events"), APIModel {
     override fun create(ctx: Context) {
         val data = ctx.body(CreateEventData::class.java)
 
+        val relatedPostID = data.relatedPost?.let { id ->
+            (transaction { Posts.slice(Posts.id).select { Posts.id eq id }.firstOrNull() }
+                    ?: throw APIModel.InvalidResourceIDException("There is no post with the ID ${data.relatedPost}."))[Posts.id]
+        }
+
         transaction {
             Events.insert {
                 it[creator] = ctx.userEntityID
                 it[title] = data.title
                 it[color] = data.color
-                it[description] = description
-                it[date] = date
-                it[endDate] = endDate
-                it[relatedPost] = relatedPost
+                it[description] = data.description
+                it[date] = LocalDateTime.ofInstant(data.date, ZoneOffset.ofHours(2))
+                it[endDate] = data.endDate?.let { endDate -> LocalDateTime.ofInstant(endDate, ZoneOffset.ofHours(2)) }
+                it[relatedPost] = relatedPostID
             }
         }
     }
@@ -126,8 +133,8 @@ data class CreateEventData(
         val title: String,
         val color: Event.Color,
         val description: String,
-        val date: LocalDateTime,
-        val endDate: LocalDateTime,
+        val date: Instant,
+        val endDate: Instant?,
         val relatedPost: Int?
 )
 
