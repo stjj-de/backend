@@ -31,11 +31,15 @@ object Videos: IntIdTable("videos"), APIModel {
     override val getAllSelectExpression = fun(ctx: Context): Op<Boolean>? {
         val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
 
-        if (!onlyPublished && ctx.user?.role?.isCompatible(User.Role.EDITOR) != true)
+        if (!onlyPublished && ctx.user?.role?.isHigherOrEqual(User.Role.EDITOR) != true)
             throw InsufficientPermissionsException("You are not allowed to access videos which were not published yet.")
 
         return if (onlyPublished) with(SqlExpressionBuilder) { publishedAt lessEq LocalDateTime.now() }
         else null
+    }
+
+    override fun create(ctx: Context) {
+        TODO("Not yet implemented")
     }
 }
 

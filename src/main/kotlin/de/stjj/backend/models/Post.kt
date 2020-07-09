@@ -51,7 +51,7 @@ object Posts: IntIdTable("posts"), APIModel {
         val onlyRelevant = ctx.query("onlyRelevant").booleanValue(false)
         val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
 
-        if (!onlyPublished && ctx.user?.role?.isCompatible(User.Role.EDITOR) != true)
+        if (!onlyPublished && ctx.user?.role?.isHigherOrEqual(User.Role.EDITOR) != true)
             throw InsufficientPermissionsException("You are not allowed to access posts which were not published yet.")
 
         return if (onlyPublished || onlyRelevant) with(SqlExpressionBuilder) {
@@ -60,6 +60,10 @@ object Posts: IntIdTable("posts"), APIModel {
                 addIf(onlyPublished) { publishedAt lessEq LocalDateTime.now() }
             }.combine()
         } else null
+    }
+
+    override fun create(ctx: Context) {
+        TODO("Not yet implemented")
     }
 }
 

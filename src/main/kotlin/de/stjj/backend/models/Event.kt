@@ -3,18 +3,18 @@ package de.stjj.backend.models
 import de.stjj.backend.routes.api.APIException
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import de.stjj.backend.utils.userEntityID
 import io.jooby.Context
 import io.jooby.StatusCode
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.`java-time`.datetime
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeParseException
 
 class InvalidEventFilterException: APIException(
@@ -104,7 +104,32 @@ object Events: IntIdTable("events"), APIModel {
             throw InvalidEventFilterException()
         }
     }
+
+    override fun create(ctx: Context) {
+        val data = ctx.body(CreateEventData::class.java)
+
+        transaction {
+            Events.insert {
+                it[creator] = ctx.userEntityID
+                it[title] = data.title
+                it[color] = data.color
+                it[description] = description
+                it[date] = date
+                it[endDate] = endDate
+                it[relatedPost] = relatedPost
+            }
+        }
+    }
 }
+
+data class CreateEventData(
+        val title: String,
+        val color: Event.Color,
+        val description: String,
+        val date: LocalDateTime,
+        val endDate: LocalDateTime,
+        val relatedPost: Int?
+)
 
 class Event(id: EntityID<Int>): IntEntity(id) {
     companion object : IntEntityClass<Event>(Events)

@@ -2,6 +2,7 @@ package de.stjj.backend.models
 
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import io.jooby.Context
 import io.jooby.Value
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
@@ -33,6 +34,10 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
     override val getOneSelectExpression: (idValue: Value) -> Op<Boolean> = { idValue ->
         val id = idValue.value()
         with(SqlExpressionBuilder) { if (id.startsWith("_")) alias eq id else UploadedFiles.id eq id }
+    }
+
+    override fun create(ctx: Context) {
+        TODO("Not yet implemented")
     }
 }
 

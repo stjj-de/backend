@@ -2,6 +2,7 @@ package de.stjj.backend.models
 
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import io.jooby.Context
 import io.jooby.Value
 import io.jooby.exception.TypeMismatchException
 import org.jetbrains.exposed.dao.IntEntity
@@ -33,13 +34,16 @@ object Users: IntIdTable("users"), APIModel {
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
     )
     val getIDGetOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Users)
-
     override val getOneSelectExpression: (Value) -> Op<Boolean> = { idValue ->
         try {
             getIDGetOneSelectExpression(idValue)
         } catch (e: TypeMismatchException) {
             with(SqlExpressionBuilder) { username eq idValue.value() }
         }
+    }
+
+    override fun create(ctx: Context) {
+        TODO("Not yet implemented")
     }
 }
 
@@ -59,7 +63,8 @@ class User(id: EntityID<Int>): IntEntity(id) {
         NONE,
         EDITOR,
         ADMINISTRATOR;
-
-        fun isCompatible(role: Role) = ordinal >= role.ordinal
     }
 }
+
+fun User?.hasHigherOrEqualRole(otherRole: User.Role?): Boolean = this?.role.isHigherOrEqual(otherRole)
+fun User.Role?.isHigherOrEqual(otherRole: User.Role?): Boolean = (this?.ordinal ?: -1) >= (otherRole?.ordinal ?: -1)

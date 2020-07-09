@@ -1,6 +1,7 @@
 package de.stjj.backend.utils
 
 import de.stjj.backend.models.User
+import de.stjj.backend.models.hasHigherOrEqualRole
 import de.stjj.backend.routes.api.APIException
 import io.jooby.Context
 import io.jooby.Kooby
@@ -17,6 +18,8 @@ interface APIModel {
     val apiFields: Set<APIField>
     val getOneSelectExpression: (idValue: Value) -> Op<Boolean>
     val getAllSelectExpression: ((ctx: Context) -> Op<Boolean>?)? get() = null
+
+    fun create(ctx: Context)
 
     class InvalidResourceIDException(
             message: String = "The specified resource ID is invalid."
@@ -82,9 +85,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
         val requestedFields = fieldNames.map(::getAPIField)
 
         for (field in requestedFields) {
-            val userRoleLevel = ctx.user?.role?.ordinal ?: 0
-            val requiredLevel = field.role.ordinal
-            if (userRoleLevel < requiredLevel) throw FieldAccessNotAllowedException(field.name)
+            if (!ctx.user.hasHigherOrEqualRole(field.role)) throw FieldAccessNotAllowedException(field.name)
         }
 
         val requestedColumnFields = requestedFields.filterIsInstance<APIField.C>()
@@ -149,6 +150,17 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
             mapOf("data" to row?.let { parseResult.resultRowMapper(it) })
         }
 
-        // TODO: Allow updates
+        post("/") {
+            if (ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
+                throw InsufficientPermissionsException(
+                        "You are not allowed to create a new entity of this model.",
+                        mapOf(
+                                "requiredRole" to model.writeAllowedRole,
+                                "yourRole" to ctx.user?.role
+                        )
+                )
+
+            model.create(ctx)
+        }
     }
 }

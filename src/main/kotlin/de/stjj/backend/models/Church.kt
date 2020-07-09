@@ -2,6 +2,7 @@ package de.stjj.backend.models
 
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import io.jooby.Context
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -16,8 +17,10 @@ object Churches: IntIdTable("churches"), APIModel {
             APIField.C("id", id, true),
             APIField.C("title", title, true)
     )
-
     override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Churches)
+    override fun create(ctx: Context) {
+        TODO("Not yet implemented")
+    }
 }
 
 class Church(id: EntityID<Int>): IntEntity(id) {
