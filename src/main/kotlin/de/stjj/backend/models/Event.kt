@@ -3,6 +3,7 @@ package de.stjj.backend.models
 import de.stjj.backend.routes.api.APIException
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import de.stjj.backend.utils.asLocalDateTime
 import de.stjj.backend.utils.userEntityID
 import io.jooby.Context
 import io.jooby.StatusCode
@@ -12,11 +13,10 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 class InvalidEventFilterException: APIException(
@@ -56,8 +56,8 @@ object Events: IntIdTable("events"), APIModel {
             APIField.C("relatedPost", relatedPost)
     )
     override val writeAllowedRole = User.Role.EDITOR
-    override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Events)
-    override val getAllSelectExpression = fun(ctx: Context): Op<Boolean>? {
+    override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(Events)
+    override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val filter = ctx.query("filter").valueOrNull() ?: return null
 
         val startDate: LocalDate
@@ -107,36 +107,33 @@ object Events: IntIdTable("events"), APIModel {
         }
     }
 
-    override fun create(ctx: Context) {
-        val data = ctx.body(CreateEventData::class.java)
+    override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
+        val data = ctx.body(CreateOrUpdateData::class.java)
 
         val relatedPostID = data.relatedPost?.let { id ->
             (transaction { Posts.slice(Posts.id).select { Posts.id eq id }.firstOrNull() }
                     ?: throw APIModel.InvalidResourceIDException("There is no post with the ID ${data.relatedPost}."))[Posts.id]
         }
 
-        transaction {
-            Events.insert {
-                it[creator] = ctx.userEntityID
-                it[title] = data.title
-                it[color] = data.color
-                it[description] = data.description
-                it[date] = LocalDateTime.ofInstant(data.date, ZoneOffset.ofHours(2))
-                it[endDate] = data.endDate?.let { endDate -> LocalDateTime.ofInstant(endDate, ZoneOffset.ofHours(2)) }
-                it[relatedPost] = relatedPostID
-            }
-        }
-    }
-}
+        if (!isUpdate) it[creator] = ctx.userEntityID
 
-data class CreateEventData(
-        val title: String,
-        val color: Event.Color,
-        val description: String,
-        val date: Instant,
-        val endDate: Instant?,
-        val relatedPost: Int?
-)
+        it[title] = data.title
+        it[color] = data.color
+        it[description] = data.description
+        it[date] = data.date.asLocalDateTime()
+        it[endDate] = data.endDate?.asLocalDateTime()
+        it[relatedPost] = relatedPostID
+    }
+
+    data class CreateOrUpdateData(
+            val title: String,
+            val color: Event.Color,
+            val description: String,
+            val date: Instant,
+            val endDate: Instant?,
+            val relatedPost: Int?
+    )
+}
 
 class Event(id: EntityID<Int>): IntEntity(id) {
     companion object : IntEntityClass<Event>(Events)

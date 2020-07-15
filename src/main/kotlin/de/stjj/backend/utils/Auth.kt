@@ -15,7 +15,7 @@ class InvalidAuthenticationTokenException: APIException(
         StatusCode.UNAUTHORIZED,
         "INVALID_AUTHENTICATION_TOKEN",
         "The authentication token you provided is invalid.",
-        { ctx: Context -> ctx.setResponseCookie(Cookie("token").setMaxAge(0)) }
+        { it.setResponseCookie(Cookie("token").setMaxAge(0)) }
 )
 
 class AuthenticationRequiredException: APIException(
@@ -28,7 +28,7 @@ open class InsufficientPermissionsException(message: String = "You are not allow
         StatusCode.FORBIDDEN,
         "INSUFFICIENT_PERMISSIONS",
         message,
-        details
+        details = details
 )
 
 @Suppress("UNCHECKED_CAST")

@@ -14,7 +14,6 @@ import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
 private val bcryptVerifier = BCrypt.verifyer()
-private val bcryptHasher = BCrypt.withDefaults()
 private val tokenAlphabet = "0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW".toCharArray()
 
 val tokenCookieMaxAge = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS)
@@ -29,9 +28,9 @@ fun Kooby.authRoutes() {
             val body = ctx.body(LoginBody::class.java)
             val user = transaction { User.findById(body.id) }
 
-            if (user != null) {
-//                println(bcryptHasher.hash(12, body.password.toCharArray()).decodeToString())
+//            println(BCrypt.withDefaults().hash(12, body.password.toCharArray()).decodeToString())
 
+            if (user != null) {
                 val result = runCatching { bcryptVerifier.verify(body.password.toCharArray(), user.passwordHash) }.getOrNull()
                 if (result?.verified == true) {
                     val token = NanoIdUtils.randomNanoId(SecureRandom(), tokenAlphabet, 50)
@@ -42,7 +41,7 @@ fun Kooby.authRoutes() {
                             "Set-Cookie",
                             "token=${token}; HttpOnly; Path=/; SameSite=Strict; " +
                                     "Max-Age=$tokenCookieMaxAge; " +
-                                    if (isDev) "" else "Domain: $hostname; Securei"
+                                    if (isDev) "" else "Domain: $hostname; Secure"
                     )
 
                     return@post ""

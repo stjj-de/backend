@@ -10,16 +10,17 @@ import io.jooby.Value
 import org.jetbrains.exposed.dao.DaoEntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 
 interface APIModel {
     val writeAllowedRole: User.Role
     val defaultFields: String
     val apiFields: Set<APIField>
-    val getOneSelectExpression: (idValue: Value) -> Op<Boolean>
-    val getAllSelectExpression: ((ctx: Context) -> Op<Boolean>?)? get() = null
+    val buildWhereCondition: (idValue: Value) -> Op<Boolean>
+    val buildSelectAllWhereCondition: ((ctx: Context) -> Op<Boolean>?)? get() = null
 
-    fun create(ctx: Context)
+    fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean)
 
     class InvalidResourceIDException(
             message: String = "The specified resource ID is invalid."
@@ -38,23 +39,23 @@ interface APIModel {
     }
 }
 
-sealed class APIField(val name: String, val role: User.Role) {
-    class C(name: String, val column: Column<*>, val sortable: Boolean = false, role: User.Role = User.Role.NONE): APIField(name, role)
-    class G(name: String, val dependsOn: Set<Column<*>> = emptySet(), role: User.Role = User.Role.NONE, val getter: (ResultRow) -> Any?): APIField(name, role)
+sealed class APIField(val name: String, val role: User.Role?) {
+    class C(name: String, val column: Column<*>, val sortable: Boolean = false, role: User.Role? = null): APIField(name, role)
+    class G(name: String, val dependsOn: Set<Column<*>> = emptySet(), role: User.Role? = null, val getter: (ResultRow) -> Any?): APIField(name, role)
 }
 
 class UnknownFieldException(fieldName: String): APIException(
         StatusCode.BAD_REQUEST,
         "UNKNOWN_FIELD",
         "There is no field named $fieldName on this model.",
-        mapOf("fieldName" to fieldName)
+        details = mapOf("fieldName" to fieldName)
 )
 
 class FieldNotAllowedForSortingException(fieldName: String): APIException(
         StatusCode.BAD_REQUEST,
         "FIELD_NOT_ALLOWED_FOR_SORTING",
         "You can not sort by the field named $fieldName.",
-        mapOf("fieldName" to fieldName)
+        details = mapOf("fieldName" to fieldName)
 )
 
 class FieldAccessNotAllowedException(fieldName: String): InsufficientPermissionsException(
@@ -121,7 +122,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
             val rows = transaction {
                 model
                         .slice(*parseResult.columns.toTypedArray())
-                        .run { model.getAllSelectExpression?.invoke(ctx)?.let { select { it } } ?: selectAll() }
+                        .run { model.buildSelectAllWhereCondition?.invoke(ctx)?.let { select { it } } ?: selectAll() }
                         .run { sortColumn?.let { orderBy(it.column, order) } ?: this }
                         .limit(limit + 1, offset.toLong())
                         .toList()
@@ -141,7 +142,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
             val row = transaction {
                 model
                         .slice(*parseResult.columns.toTypedArray())
-                        .select(model.getOneSelectExpression(ctx.path("id")))
+                        .select(model.buildWhereCondition(ctx.path("id")))
                         .limit(1)
                         .firstOrNull()
             }
@@ -160,7 +161,21 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
                         )
                 )
 
-            model.create(ctx)
+            transaction { model.insert { model.applyData(ctx, it, false) } }
+            return@post Unit
+        }
+
+        put("/{id}") {
+            if (!ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
+                throw InsufficientPermissionsException(
+                        "You are not allowed to update entities of this model.",
+                        mapOf(
+                                "requiredRole" to model.writeAllowedRole,
+                                "yourRole" to ctx.user?.role
+                        )
+                )
+
+            transaction { model.update({ model.buildWhereCondition(ctx.path("id")) }, 1) { model.applyData(ctx, it, true) } }
         }
     }
 }

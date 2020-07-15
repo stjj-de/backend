@@ -94,15 +94,14 @@ fun connectToDatabase() {
 
     transaction {
         SchemaUtils.createMissingTablesAndColumns(
-                Churches,
-                ChurchServiceDates,
-                Events,
-                Posts,
-                PostAuthors,
-                UploadedFiles,
-                Users,
-                Videos,
-                Contents
+            Churches,
+            ChurchServiceDates,
+            Users,
+            UploadedFiles,
+            Contents,
+            Videos,
+            Posts,
+            Events
         )
     }
 }

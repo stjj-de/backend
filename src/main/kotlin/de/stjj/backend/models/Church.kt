@@ -7,6 +7,7 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 
 object Churches: IntIdTable("churches"), APIModel {
     val title = varchar("title", 255)
@@ -17,10 +18,16 @@ object Churches: IntIdTable("churches"), APIModel {
             APIField.C("id", id, true),
             APIField.C("title", title, true)
     )
-    override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Churches)
-    override fun create(ctx: Context) {
-        TODO("Not yet implemented")
+    override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(Churches)
+
+    override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
+        val data = ctx.body(CreateOrUpdateData::class.java)
+        it[title] = data.title
     }
+
+    data class CreateOrUpdateData(
+            val title: String
+    )
 }
 
 class Church(id: EntityID<Int>): IntEntity(id) {

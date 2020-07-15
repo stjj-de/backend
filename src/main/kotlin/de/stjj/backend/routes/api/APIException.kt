@@ -7,12 +7,12 @@ import io.jooby.StatusCode
 data class APIErrorResponse(val code: String, val message: String, val details: Any?)
 
 open class APIException(
-    val statusCode: StatusCode,
-    val code: String,
-    override val message: String,
-    val details: Any? = null,
-    val manipulateResponse: (ctx: Context) -> Unit = {}
-): RuntimeException() {
+        val statusCode: StatusCode,
+        val code: String,
+        override val message: String,
+        val manipulateResponse: (ctx: Context) -> Unit = {},
+        val details: Map<String, Any?>? = null
+): Exception() {
     companion object {
         fun registerHandler(app: Kooby) {
             app.error(APIException::class.java) { ctx, e, _ ->

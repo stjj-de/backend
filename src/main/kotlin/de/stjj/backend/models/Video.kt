@@ -1,10 +1,9 @@
 package de.stjj.backend.models
 
-import de.stjj.backend.utils.APIField
-import de.stjj.backend.utils.APIModel
-import de.stjj.backend.utils.InsufficientPermissionsException
-import de.stjj.backend.utils.user
+import de.stjj.backend.routes.api.APIException
+import de.stjj.backend.utils.*
 import io.jooby.Context
+import io.jooby.StatusCode
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -12,6 +11,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import java.time.Instant
 import java.time.LocalDateTime
 
 object Videos: IntIdTable("videos"), APIModel {
@@ -27,8 +28,8 @@ object Videos: IntIdTable("videos"), APIModel {
             APIField.C("publishedAt", publishedAt, true),
             APIField.C("youtubeVideoID", youtubeVideoID)
     )
-    override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Videos)
-    override val getAllSelectExpression = fun(ctx: Context): Op<Boolean>? {
+    override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(Videos)
+    override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
 
         if (!onlyPublished && ctx.user?.role?.isHigherOrEqual(User.Role.EDITOR) != true)
@@ -38,9 +39,25 @@ object Videos: IntIdTable("videos"), APIModel {
         else null
     }
 
-    override fun create(ctx: Context) {
-        TODO("Not yet implemented")
+    override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
+        if (isUpdate) {
+            val data = ctx.body(UpdateData::class)
+
+            it[title] = data.title
+            it[publishedAt] = data.publishedAt.asLocalDateTime()
+        } else {
+            val data = ctx.body(CreateData::class)
+            val title = YouTubeAPI.getVideoTitle(data.youtubeVideoID)
+                ?: throw APIException(StatusCode.NOT_FOUND, "INVALID_YOUTUBE_VIDEO_ID", "The video with the specified ID could not be found on YouTube.")
+
+            it[Videos.title] = title
+            it[publishedAt] = null
+            it[youtubeVideoID] = data.youtubeVideoID
+        }
     }
+
+    data class CreateData(val youtubeVideoID: String)
+    data class UpdateData(val title: String, val publishedAt: Instant)
 }
 
 class Video(id: EntityID<Int>): IntEntity(id) {

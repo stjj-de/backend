@@ -32,6 +32,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.20")
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("com.aventrix.jnanoid:jnanoid:2.0.0")
+    implementation("com.squareup.okhttp3:okhttp:4.8.0")
 }
 
 configure<JavaPluginConvention> {

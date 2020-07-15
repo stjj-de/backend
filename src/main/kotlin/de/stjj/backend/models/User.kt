@@ -1,5 +1,6 @@
 package de.stjj.backend.models
 
+import at.favre.lib.crypto.bcrypt.BCrypt
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
 import io.jooby.Context
@@ -11,6 +12,9 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
+
+private val bcryptHasher = BCrypt.withDefaults()
 
 object Users: IntIdTable("users"), APIModel {
     val username = varchar("username", 30).uniqueIndex()
@@ -19,7 +23,7 @@ object Users: IntIdTable("users"), APIModel {
     val position = varchar("position", 255).nullable()
     val role = enumerationByName("role", 255, User.Role::class)
     val imageID = char("image_id", 10).nullable()
-    val passwordHash = char("password_hash", 60).nullable()
+    val passwordHash = char("password_hash", 60)
     val authToken = char("auth_token", 50).nullable().uniqueIndex()
 
     override val defaultFields = "id,displayName,imageID"
@@ -34,7 +38,7 @@ object Users: IntIdTable("users"), APIModel {
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
     )
     val getIDGetOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Users)
-    override val getOneSelectExpression: (Value) -> Op<Boolean> = { idValue ->
+    override val buildWhereCondition: (Value) -> Op<Boolean> = { idValue ->
         try {
             getIDGetOneSelectExpression(idValue)
         } catch (e: TypeMismatchException) {
@@ -42,9 +46,25 @@ object Users: IntIdTable("users"), APIModel {
         }
     }
 
-    override fun create(ctx: Context) {
-        TODO("Not yet implemented")
+    @ExperimentalStdlibApi
+    override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
+        val data = ctx.body(CreateOrUpdateData::class.java)
+
+        it[username] = data.username
+        it[realName] = data.realName
+        it[position] = data.position
+        it[role] = data.role
+
+        if (data.password != null) it[passwordHash] = bcryptHasher.hash(12, data.password.toCharArray()).decodeToString()
     }
+
+    data class CreateOrUpdateData(
+        val username: String,
+        val realName: String,
+        val position: String,
+        val role: User.Role,
+        val password: String?
+    )
 }
 
 class User(id: EntityID<Int>): IntEntity(id) {

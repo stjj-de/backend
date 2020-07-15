@@ -8,11 +8,11 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.`java-time`.datetime
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import java.time.Instant
 import java.time.LocalDateTime
 
 object Posts: IntIdTable("posts"), APIModel {
@@ -22,6 +22,12 @@ object Posts: IntIdTable("posts"), APIModel {
     val relevantUntil = datetime("relevant_until").nullable()
     val excerpt = varchar("excerpt", 255)
     val content = text("content") // HTML content
+    val author = optReference(
+        "author",
+        Users,
+        ReferenceOption.SET_NULL,
+        ReferenceOption.CASCADE
+    )
 
     override val defaultFields = "slug,title,publishedAt,excerpt"
     override val apiFields = setOf(
@@ -32,22 +38,17 @@ object Posts: IntIdTable("posts"), APIModel {
             APIField.C("relevantUntil", relevantUntil, true),
             APIField.C("excerpt", excerpt),
             APIField.C("content", content),
-            APIField.G("authors", setOf(id)) { row ->
-                transaction {
-                    PostAuthors
-                            .select { PostAuthors.post eq row[Posts.id] }
-                            .map { r -> r[PostAuthors.author].value } }
-            }
+            APIField.C("author", author)
     )
     override val writeAllowedRole = User.Role.EDITOR
-    override val getOneSelectExpression = fun(idValue: Value): Op<Boolean> {
+    override val buildWhereCondition = fun(idValue: Value): Op<Boolean> {
         val stringValue = idValue.value()
         return with(SqlExpressionBuilder) {
             if (stringValue.startsWith("_")) slug eq stringValue.drop(1)
             else Posts.id eq idValue.intValue()
         }
     }
-    override val getAllSelectExpression = fun(ctx: Context): Op<Boolean>? {
+    override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val onlyRelevant = ctx.query("onlyRelevant").booleanValue(false)
         val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
 
@@ -62,9 +63,26 @@ object Posts: IntIdTable("posts"), APIModel {
         } else null
     }
 
-    override fun create(ctx: Context) {
-        TODO("Not yet implemented")
+    override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
+        val data = ctx.body(CreateOrUpdateData::class.java)
+        it[slug] = data.slug
+        it[title] = data.title
+        it[publishedAt] = data.publishedAt?.asLocalDateTime()
+        it[relevantUntil] = data.relevantUntil?.asLocalDateTime()
+        it[excerpt] = data.excerpt
+        it[content] = data.content
+
+        if (!isUpdate) it[author] = ctx.userEntityID!!
     }
+
+    data class CreateOrUpdateData(
+            val slug: String,
+            val title: String,
+            val publishedAt: Instant?,
+            val relevantUntil: Instant?,
+            val excerpt: String,
+            val content: String
+    )
 }
 
 class Post(id: EntityID<Int>): IntEntity(id) {
@@ -75,12 +93,5 @@ class Post(id: EntityID<Int>): IntEntity(id) {
     var relevantUntil by Posts.relevantUntil
     var excerpt by Posts.excerpt
     var content by Posts.content
-
-    var authors by User via PostAuthors
-}
-
-object PostAuthors: Table("post_authors") {
-    val post = reference("post", Posts)
-    val author = reference("author", Users)
-    override val primaryKey = PrimaryKey(post, author)
+    var author by Posts.author
 }

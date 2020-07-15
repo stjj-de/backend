@@ -2,12 +2,17 @@ package de.stjj.backend.models
 
 import de.stjj.backend.utils.APIField
 import de.stjj.backend.utils.APIModel
+import de.stjj.backend.utils.asLocalDateTime
 import io.jooby.Context
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
 
 object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
     val date = datetime("date")
@@ -22,10 +27,24 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
             APIField.C("church", church),
             APIField.C("description", description)
     )
-    override val getOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(ChurchServiceDates)
-    override fun create(ctx: Context) {
-        TODO("Not yet implemented")
+    override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(ChurchServiceDates)
+
+    override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
+        val data = ctx.body(CreateOrUpdateData::class.java)
+
+        val churchID = (transaction { slice(Churches.id).select { Churches.id eq data.church }.firstOrNull() }
+                ?: throw APIModel.InvalidResourceIDException("There is no church with the ID ${data.church}."))[Churches.id]
+
+        it[date] = data.date.asLocalDateTime()
+        it[church] = churchID
+        it[description] = data.description
     }
+
+    data class CreateOrUpdateData(
+            val date: Instant,
+            val church: Int,
+            val description: String
+    )
 }
 
 class ChurchServiceDate(id: EntityID<Int>): IntEntity(id) {
