@@ -21,6 +21,7 @@ interface APIModel {
     val buildSelectAllWhereCondition: ((ctx: Context) -> Op<Boolean>?)? get() = null
 
     fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean)
+    fun getCreatedResponseData(ctx: Context, resultRow: ResultRow): Any? = null
 
     class InvalidResourceIDException(
             message: String = "The specified resource ID is invalid."
@@ -161,8 +162,9 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
                         )
                 )
 
-            transaction { model.insert { model.applyData(ctx, it, false) } }
-            Unit
+            val result = transaction { model.insert { model.applyData(ctx, it, false) }.resultedValues!!.first() }
+            ctx.responseCode = StatusCode.CREATED
+            mapOf("data" to model.getCreatedResponseData(ctx, result))
         }
 
         put("/{id}") {

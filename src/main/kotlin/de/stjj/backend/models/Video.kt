@@ -9,6 +9,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -38,6 +39,8 @@ object Videos: IntIdTable("videos"), APIModel {
         return if (onlyPublished) with(SqlExpressionBuilder) { publishedAt lessEq LocalDateTime.now() }
         else null
     }
+
+    override fun getCreatedResponseData(ctx: Context, resultRow: ResultRow): Any? = mapOf("id" to resultRow[Videos.id].value)
 
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
         if (isUpdate) {

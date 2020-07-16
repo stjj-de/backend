@@ -23,7 +23,7 @@ object YouTubeAPI {
             val data = gson.fromJson(body.string(), JsonObject::class.java)
             body.close()
 
-            data.get("snippet")?.asJsonObject?.get("title")?.asString
+            data.get("items").asJsonArray?.firstOrNull()?.asJsonObject?.get("snippet")?.asJsonObject?.get("title")?.asString
         }
     }
 }
