@@ -162,7 +162,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
                 )
 
             transaction { model.insert { model.applyData(ctx, it, false) } }
-            return@post Unit
+            Unit
         }
 
         put("/{id}") {
@@ -176,6 +176,21 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
                 )
 
             transaction { model.update({ model.buildWhereCondition(ctx.path("id")) }, 1) { model.applyData(ctx, it, true) } }
+            Unit
+        }
+
+        delete("/{id}") {
+            if (!ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
+                throw InsufficientPermissionsException(
+                        "You are not allowed to delete entities of this model.",
+                        mapOf(
+                                "requiredRole" to model.writeAllowedRole,
+                                "yourRole" to ctx.user?.role
+                        )
+                )
+
+            transaction { model.deleteWhere(1) { model.buildWhereCondition(ctx.path("id")) } }
+            Unit
         }
     }
 }
