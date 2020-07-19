@@ -9,6 +9,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -16,7 +17,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 
 object Posts: IntIdTable("posts"), APIModel {
-    val slug = varchar("slug", 50)
+    val slug = varchar("slug", 50).uniqueIndex()
     val title = varchar("title", 255)
     val publishedAt = datetime("published_at").nullable()
     val relevantUntil = datetime("relevant_until").nullable()
@@ -74,6 +75,8 @@ object Posts: IntIdTable("posts"), APIModel {
 
         if (!isUpdate) it[author] = ctx.userEntityID!!
     }
+
+    override fun getCreatedResponseData(ctx: Context, resultRow: ResultRow): Any? = mapOf("id" to resultRow[id].value)
 
     data class CreateOrUpdateData(
             val slug: String,
