@@ -12,6 +12,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -19,9 +20,15 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
     override val id: Column<EntityID<String>> = char("id", 10).entityId()
     val title = varchar("title", 255)
-    val mimeType = varchar("varchar", 255).nullable()
-    val alias = varchar("alias", 50).uniqueIndex().nullable()
+    val mimeType = varchar("mime_type", 255).nullable()
     val uploadedAt = datetime("uploaded_at")
+    val uploader = reference(
+            "uploader",
+            Users,
+            ReferenceOption.SET_NULL,
+            ReferenceOption.CASCADE
+    ).nullable()
+    val blurhash = varchar("blurhash", 255)
 
     override val primaryKey = PrimaryKey(id)
 
@@ -30,13 +37,13 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
             APIField.C("id", id, true),
             APIField.C("title", title, true),
             APIField.C("mimeType", mimeType, true),
-            APIField.C("alias", alias, true),
+            APIField.C("uploader", uploader, true),
             APIField.C("uploadedAt", uploadedAt, true)
     )
     override val writeAllowedRole = User.Role.EDITOR
     override val buildWhereCondition: (idValue: Value) -> Op<Boolean> = { idValue ->
         val id = idValue.value()
-        with(SqlExpressionBuilder) { if (id.startsWith("_")) alias eq id else UploadedFiles.id eq id }
+        with(SqlExpressionBuilder) { UploadedFiles.id eq id }
     }
 
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
@@ -44,19 +51,15 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
 
         val data = ctx.body(UpdateData::class.java)
         it[title] = data.title
-        it[alias] = data.alias
     }
 
-    data class UpdateData(
-            val title: String,
-            val alias: String?
-    )
+    data class UpdateData(val title: String)
 }
 
 class UploadedFile(id: EntityID<String>): Entity<String>(id) {
     companion object : EntityClass<String, UploadedFile>(UploadedFiles)
     var title by UploadedFiles.title
     var mimeType by UploadedFiles.mimeType
-    var alias by UploadedFiles.alias
     var uploadedAt by UploadedFiles.uploadedAt
+    var uploader by UploadedFiles.uploader
 }
