@@ -6,6 +6,7 @@ import de.stjj.backend.utils.APIModel
 import io.jooby.Context
 import io.jooby.StatusCode
 import io.jooby.Value
+import org.apache.tika.mime.MimeTypes
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -28,7 +29,7 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
             ReferenceOption.SET_NULL,
             ReferenceOption.CASCADE
     ).nullable()
-    val blurhash = varchar("blurhash", 255)
+    val blurhash = varchar("blurhash", 255).nullable()
 
     override val primaryKey = PrimaryKey(id)
 
@@ -38,7 +39,8 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
             APIField.C("title", title, true),
             APIField.C("mimeType", mimeType, true),
             APIField.C("uploader", uploader, true),
-            APIField.C("uploadedAt", uploadedAt, true)
+            APIField.C("uploadedAt", uploadedAt, true),
+            APIField.C("blurhash", blurhash, false)
     )
     override val writeAllowedRole = User.Role.EDITOR
     override val buildWhereCondition: (idValue: Value) -> Op<Boolean> = { idValue ->
@@ -59,7 +61,10 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
 class UploadedFile(id: EntityID<String>): Entity<String>(id) {
     companion object : EntityClass<String, UploadedFile>(UploadedFiles)
     var title by UploadedFiles.title
-    var mimeType by UploadedFiles.mimeType
+    var mimeTypeName by UploadedFiles.mimeType
     var uploadedAt by UploadedFiles.uploadedAt
     var uploader by UploadedFiles.uploader
+    var blurhash by UploadedFiles.blurhash
+
+    val mimeType by lazy { mimeTypeName?.let { MimeTypes.getDefaultMimeTypes().forName(it) } }
 }

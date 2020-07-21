@@ -33,6 +33,7 @@ dependencies {
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("com.aventrix.jnanoid:jnanoid:2.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.8.0")
+    implementation("org.apache.tika:tika-core:1.24.1")
 }
 
 configure<JavaPluginConvention> {

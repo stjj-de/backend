@@ -22,7 +22,6 @@ object Users: IntIdTable("users"), APIModel {
     val displayName = varchar("display_name", 255).nullable()
     val position = varchar("position", 255).nullable()
     val role = enumerationByName("role", 255, User.Role::class)
-    val imageID = char("image_id", 10).nullable()
     val passwordHash = char("password_hash", 60)
     val authToken = char("auth_token", 50).nullable().uniqueIndex()
 
@@ -34,7 +33,6 @@ object Users: IntIdTable("users"), APIModel {
             APIField.C("realName", realName, true),
             APIField.C("position", position, true),
             APIField.C("role", role, true),
-            APIField.C("imageID", imageID),
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
     )
     val getIDGetOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Users)
@@ -76,7 +74,6 @@ class User(id: EntityID<Int>): IntEntity(id) {
     var position by Users.position
     var passwordHash by Users.passwordHash
     var role by Users.role
-    var imageID by Users.imageID
     var authToken by Users.authToken
 
     enum class Role {

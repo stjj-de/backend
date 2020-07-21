@@ -3,6 +3,7 @@ package de.stjj.backend.routes
 import de.stjj.backend.models.*
 import de.stjj.backend.routes.api.authRoutes
 import de.stjj.backend.routes.api.contentsRoutes
+import de.stjj.backend.routes.api.usersRoutes
 import de.stjj.backend.utils.apiModelRoutes
 import io.jooby.Kooby
 
@@ -16,9 +17,9 @@ fun Kooby.apiRoutes() {
         apiModelRoutes("/churches", Churches)
         apiModelRoutes("/posts", Posts)
         apiModelRoutes("/uploads", UploadedFiles)
-        apiModelRoutes("/users", Users)
         apiModelRoutes("/videos", Videos)
 
+        usersRoutes()
         authRoutes()
         contentsRoutes()
     }
