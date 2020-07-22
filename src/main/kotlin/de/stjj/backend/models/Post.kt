@@ -7,10 +7,7 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.Instant
@@ -58,7 +55,7 @@ object Posts: IntIdTable("posts"), APIModel {
 
         return if (onlyPublished || onlyRelevant) with(SqlExpressionBuilder) {
             mutableListOf<Op<Boolean>>().apply {
-                addIf(onlyRelevant) { relevantUntil greater LocalDateTime.now() }
+                addIf(onlyRelevant) { relevantUntil.isNull() or (relevantUntil greater LocalDateTime.now()) }
                 addIf(onlyPublished) { publishedAt lessEq LocalDateTime.now() }
             }.combine()
         } else null
