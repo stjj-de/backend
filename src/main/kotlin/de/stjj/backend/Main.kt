@@ -1,5 +1,3 @@
-@file:Suppress("EXPERIMENTAL_API_USAGE")
-
 package de.stjj.backend
 
 import com.squareup.moshi.JsonDataException
@@ -39,11 +37,11 @@ fun main(args: Array<String>) {
         error(JsonDataException::class.java) { ctx, e, _ ->
             ctx.responseCode = StatusCode.BAD_REQUEST
             ctx.render(APIErrorResponse(
-                "INVALID_REQUEST_DATA",
-                "The provided request data is invalid.",
-                mapOf(
-                    "reason" to (e as JsonDataException).message
-                )
+                    "INVALID_REQUEST_DATA",
+                    "The provided request data is invalid.",
+                    mapOf(
+                            "reason" to (e as JsonDataException).message
+                    )
             ))
         }
 
@@ -88,20 +86,23 @@ fun connectToDatabase() {
     val port = System.getenv("MARIADB_PORT") ?: "3306"
     val database = System.getenv("MARIADB_DATABASE") ?: "stjj-de"
     val user = System.getenv("MARIADB_USER") ?: "stjj"
-    val password = System.getenv("MARIADB_PASSWORD") ?: error("Please specify the MARIADB_PASSWORD environment variable")
+    val password = System.getenv("MARIADB_PASSWORD")
+            ?: error("Please specify the MARIADB_PASSWORD environment variable")
 
     Database.connect("jdbc:mysql://$host:$port/$database", user = user, password = password)
 
     transaction {
         SchemaUtils.createMissingTablesAndColumns(
-            Churches,
-            ChurchServiceDates,
-            Users,
-            UploadedFiles,
-            Contents,
-            Videos,
-            Posts,
-            Events
+                Churches,
+                ChurchServiceDates,
+                Users,
+                UploadedFiles,
+                Contents,
+                Videos,
+                Posts,
+                Events,
+                Groups,
+                GroupMembers
         )
     }
 }

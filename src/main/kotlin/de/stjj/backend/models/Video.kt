@@ -21,8 +21,8 @@ object Videos: IntIdTable("videos"), APIModel {
     val publishedAt = datetime("published_at").nullable()
     val youtubeVideoID = varchar("youtube_video_id", 20)
 
+    override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val defaultFields = "id,title,publishedAt,youtubeVideoID"
-    override val writeAllowedRole = User.Role.EDITOR
     override val apiFields = setOf(
             APIField.C("id", id, true),
             APIField.C("title", title, true),

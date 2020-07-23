@@ -12,7 +12,9 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.sql.transactions.transaction
 
 private val bcryptHasher = BCrypt.withDefaults()
 
@@ -25,15 +27,18 @@ object Users: IntIdTable("users"), APIModel {
     val passwordHash = char("password_hash", 60)
     val authToken = char("auth_token", 50).nullable().uniqueIndex()
 
+    override val writePermissionChecker = APIModel.minimumRole(User.Role.ADMINISTRATOR)
     override val defaultFields = "id,displayName,imageID"
-    override val writeAllowedRole = User.Role.ADMINISTRATOR
     override val apiFields = setOf(
             APIField.C("id", id, true),
             APIField.C("username", username, true),
             APIField.C("realName", realName, true),
             APIField.C("position", position, true),
             APIField.C("role", role, true),
-            APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] }
+            APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] },
+            APIField.G("groups", setOf(id)) { result ->
+                transaction { GroupMembers.slice(GroupMembers.group).select { GroupMembers.user eq result[Users.id] }.map { it[GroupMembers.group].value } }
+            }
     )
     val getIDGetOneSelectExpression = APIModel.createIntIDGetOneSelectExpression(Users)
     override val buildWhereCondition: (Value) -> Op<Boolean> = { idValue ->
@@ -75,6 +80,7 @@ class User(id: EntityID<Int>): IntEntity(id) {
     var passwordHash by Users.passwordHash
     var role by Users.role
     var authToken by Users.authToken
+    var groups by Group via GroupMembers
 
     enum class Role {
         NONE,

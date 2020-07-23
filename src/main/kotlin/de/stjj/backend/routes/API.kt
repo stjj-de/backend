@@ -18,6 +18,7 @@ fun Kooby.apiRoutes() {
         apiModelRoutes("/posts", Posts)
         apiModelRoutes("/uploads", UploadedFiles)
         apiModelRoutes("/videos", Videos)
+        apiModelRoutes("/groups", Groups)
 
         usersRoutes()
         authRoutes()

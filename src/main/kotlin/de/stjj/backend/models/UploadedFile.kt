@@ -33,6 +33,7 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
 
     override val primaryKey = PrimaryKey(id)
 
+    override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val defaultFields = "id,title,mimeType"
     override val apiFields = setOf(
             APIField.C("id", id, true),
@@ -42,7 +43,6 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
             APIField.C("uploadedAt", uploadedAt, true),
             APIField.C("blurhash", blurhash, false)
     )
-    override val writeAllowedRole = User.Role.EDITOR
     override val buildWhereCondition: (idValue: Value) -> Op<Boolean> = { idValue ->
         val id = idValue.value()
         with(SqlExpressionBuilder) { UploadedFiles.id eq id }

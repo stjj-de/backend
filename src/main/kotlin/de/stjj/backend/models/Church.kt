@@ -13,7 +13,7 @@ object Churches: IntIdTable("churches"), APIModel {
     val title = varchar("title", 255)
 
     override val defaultFields = "id,title"
-    override val writeAllowedRole = User.Role.EDITOR
+    override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val apiFields = setOf(
             APIField.C("id", id, true),
             APIField.C("title", title, true)

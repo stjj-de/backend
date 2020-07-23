@@ -14,7 +14,7 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 
 interface APIModel {
-    val writeAllowedRole: User.Role
+    val writePermissionChecker: (ctx: Context, idValue: Value?) -> Unit
     val defaultFields: String
     val apiFields: Set<APIField>
     val buildWhereCondition: (idValue: Value) -> Op<Boolean>
@@ -28,6 +28,19 @@ interface APIModel {
     ): APIException(StatusCode.BAD_REQUEST, "INVALID_RESOURCE_ID", message)
 
     companion object {
+        fun minimumRole(role: User.Role): (Context, Value?) -> Unit {
+            return { ctx: Context, _ ->
+                if (!ctx.user.hasHigherOrEqualRole(role))
+                    throw InsufficientPermissionsException(
+                            "You are not allowed to do write operations on this model.",
+                            mapOf(
+                                    "requiredRole" to role,
+                                    "yourRole" to ctx.user?.role
+                            )
+                    )
+            }
+        }
+
         fun createIntIDGetOneSelectExpression(table: IntIdTable): (Value) -> Op<Boolean> {
             return { idValue: Value ->
                 with(SqlExpressionBuilder) {
@@ -153,45 +166,23 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
         }
 
         post("/") {
-            if (!ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
-                throw InsufficientPermissionsException(
-                        "You are not allowed to create a new entity of this model.",
-                        mapOf(
-                                "requiredRole" to model.writeAllowedRole,
-                                "yourRole" to ctx.user?.role
-                        )
-                )
-
+            model.writePermissionChecker(ctx, null)
             val result = transaction { model.insert { model.applyData(ctx, it, false) }.resultedValues!!.first() }
             ctx.responseCode = StatusCode.CREATED
             mapOf("data" to model.getCreatedResponseData(ctx, result))
         }
 
         put("/{id}") {
-            if (!ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
-                throw InsufficientPermissionsException(
-                        "You are not allowed to update entities of this model.",
-                        mapOf(
-                                "requiredRole" to model.writeAllowedRole,
-                                "yourRole" to ctx.user?.role
-                        )
-                )
-
-            transaction { model.update({ model.buildWhereCondition(ctx.path("id")) }, 1) { model.applyData(ctx, it, true) } }
+            val idValue = ctx.path("id")
+            model.writePermissionChecker(ctx, idValue)
+            transaction { model.update({ model.buildWhereCondition(idValue) }, 1) { model.applyData(ctx, it, true) } }
             Unit
         }
 
         delete("/{id}") {
-            if (!ctx.user.hasHigherOrEqualRole(model.writeAllowedRole))
-                throw InsufficientPermissionsException(
-                        "You are not allowed to delete entities of this model.",
-                        mapOf(
-                                "requiredRole" to model.writeAllowedRole,
-                                "yourRole" to ctx.user?.role
-                        )
-                )
-
-            transaction { model.deleteWhere(1) { model.buildWhereCondition(ctx.path("id")) } }
+            val idValue = ctx.path("id")
+            model.writePermissionChecker(ctx, idValue)
+            transaction { model.deleteWhere(1) { model.buildWhereCondition(idValue) } }
             Unit
         }
     }

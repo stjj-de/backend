@@ -44,6 +44,7 @@ object Events: IntIdTable("events"), APIModel {
             ReferenceOption.CASCADE
     )
 
+    override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val defaultFields = "id,title,color,date,endDate"
     override val apiFields = setOf(
             APIField.C("id", id, true),
@@ -55,7 +56,6 @@ object Events: IntIdTable("events"), APIModel {
             APIField.C("endDate", endDate),
             APIField.C("relatedPost", relatedPost)
     )
-    override val writeAllowedRole = User.Role.EDITOR
     override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(Events)
     override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val filter = ctx.query("filter").valueOrNull() ?: return null

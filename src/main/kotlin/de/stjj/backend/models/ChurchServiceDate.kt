@@ -20,7 +20,7 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
     val description = text("description") // HTML content
 
     override val defaultFields = "id,date,church,description"
-    override val writeAllowedRole = User.Role.EDITOR
+    override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val apiFields = setOf(
             APIField.C("id", id, true),
             APIField.C("date", date, true),
