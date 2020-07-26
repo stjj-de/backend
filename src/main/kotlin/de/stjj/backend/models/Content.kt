@@ -12,9 +12,10 @@ object Contents: IdTable<Content.ID>("contents") {
 
 class Content(id: EntityID<ID>): Entity<Content.ID>(id) {
     companion object : EntityClass<ID, Content>(Contents)
-    val content by Contents.content
+    var content by Contents.content
 
     enum class ID {
-        HOMEPAGE_INTRODUCTION
+        HOMEPAGE_INTRODUCTION,
+        GEMEINDE
     }
 }

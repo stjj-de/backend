@@ -32,7 +32,7 @@ interface APIModel {
             return { ctx: Context, _ ->
                 if (!ctx.user.hasHigherOrEqualRole(role))
                     throw InsufficientPermissionsException(
-                            "You are not allowed to do write operations on this model.",
+                            "You are not allowed to perform this operation for this entity.",
                             mapOf(
                                     "requiredRole" to role,
                                     "yourRole" to ctx.user?.role
@@ -53,9 +53,9 @@ interface APIModel {
     }
 }
 
-sealed class APIField(val name: String, val role: User.Role?) {
-    class C(name: String, val column: Column<*>, val sortable: Boolean = false, role: User.Role? = null): APIField(name, role)
-    class G(name: String, val dependsOn: Set<Column<*>> = emptySet(), role: User.Role? = null, val getter: (ResultRow) -> Any?): APIField(name, role)
+sealed class APIField(val name: String, val roleForReading: User.Role?) {
+    class C(name: String, val column: Column<*>, val sortable: Boolean = false, roleForReading: User.Role? = null): APIField(name, roleForReading)
+    class G(name: String, val dependsOn: Set<Column<*>> = emptySet(), roleForReading: User.Role? = null, val getter: (ResultRow) -> Any?): APIField(name, roleForReading)
 }
 
 class UnknownFieldException(fieldName: String): APIException(
@@ -100,7 +100,7 @@ fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
         val requestedFields = fieldNames.map(::getAPIField)
 
         for (field in requestedFields) {
-            if (!ctx.user.hasHigherOrEqualRole(field.role)) throw FieldAccessNotAllowedException(field.name)
+            if (!ctx.user.hasHigherOrEqualRole(field.roleForReading)) throw FieldAccessNotAllowedException(field.name)
         }
 
         val requestedColumnFields = requestedFields.filterIsInstance<APIField.C>()
