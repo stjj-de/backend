@@ -68,18 +68,24 @@ object Posts: IntIdTable("posts"), APIModel {
     override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val onlyRelevant = ctx.query("onlyRelevant").booleanValue(false)
         val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
-        val onlyOwnGroup = ctx.query("onlyOwnGroup").booleanValue(false)
+        val groupValue = ctx.query("group")
+        val onlyOwnGroup = groupValue.valueOrNull() == "own"
 
-        if (!onlyPublished && !onlyOwnGroup && ctx.user?.role?.isHigherOrEqual(User.Role.EDITOR) != true)
-            throw InsufficientPermissionsException("You are not allowed to access posts which were not published yet.")
+        if (
+                !onlyPublished &&
+                (ctx.user == null || !ctx.user!!.role.isHigherOrEqual(User.Role.EDITOR) && !onlyOwnGroup)
+        ) throw InsufficientPermissionsException("You are not allowed to access posts which were not published yet.")
 
-        return if (onlyPublished || onlyRelevant || onlyOwnGroup) with(SqlExpressionBuilder) {
+        return with(SqlExpressionBuilder) {
             mutableListOf<Op<Boolean>>().apply {
                 addIf(onlyRelevant) { relevantUntil.isNull() or (relevantUntil greater LocalDateTime.now()) }
                 addIf(onlyPublished) { publishedAt lessEq LocalDateTime.now() }
-                addIf(onlyOwnGroup) { group inList ctx.user!!.groups.map { it.id } }
+                addIf(!groupValue.isMissing) {
+                    if (onlyOwnGroup) group inList ctx.user!!.groups.map { it.id }
+                    else group eq if (groupValue.value() == "general") null else groupValue.intValue()
+                }
             }.combine()
-        } else null
+        }
     }
 
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
