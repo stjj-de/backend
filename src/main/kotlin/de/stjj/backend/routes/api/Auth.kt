@@ -6,7 +6,7 @@ import de.stjj.backend.models.User
 import de.stjj.backend.utils.AuthenticationRequiredException
 import de.stjj.backend.utils.hostname
 import de.stjj.backend.utils.isDev
-import de.stjj.backend.utils.user
+import de.stjj.backend.utils.userID
 import io.jooby.Kooby
 import io.jooby.StatusCode
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -52,13 +52,21 @@ fun Kooby.authRoutes() {
         }
 
         delete("/") {
-            // TODO: Logout
+            ctx.userID ?: throw AuthenticationRequiredException()
+
+            ctx.setResponseHeader(
+                    "Set-Cookie",
+                    "token=; HttpOnly; Path=/; SameSite=Strict; " +
+                            "Max-Age=0" +
+                            if (isDev) "" else "Domain: $hostname; Secure"
+            )
+
+            ctx.send(StatusCode.NO_CONTENT)
         }
 
         get("/me") { ctx ->
-            val user = ctx.user
-            if (user == null) throw AuthenticationRequiredException()
-            else mapOf("id" to user.id.value)
+            val userID = ctx.userID ?: throw AuthenticationRequiredException()
+            mapOf("id" to userID)
         }
     }
 }
