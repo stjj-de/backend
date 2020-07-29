@@ -11,26 +11,31 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 
 object Churches: IntIdTable("churches"), APIModel {
     val title = varchar("title", 255)
+    val plusCode = varchar("plus_code", 20).nullable()
 
     override val defaultFields = "id,title"
     override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val apiFields = setOf(
             APIField.C("id", id, true),
-            APIField.C("title", title, true)
+            APIField.C("title", title, true),
+            APIField.C("plusCode", plusCode, false)
     )
     override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(Churches)
 
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
         val data = ctx.body(CreateOrUpdateData::class.java)
         it[title] = data.title
+        it[plusCode] = if (data.plusCode.isBlank()) null else data.plusCode
     }
 
     data class CreateOrUpdateData(
-            val title: String
+            val title: String,
+            val plusCode: String
     )
 }
 
 class Church(id: EntityID<Int>): IntEntity(id) {
     companion object : IntEntityClass<Church>(Churches)
     var title by Churches.title
+    var plusCode by Churches.plusCode
 }

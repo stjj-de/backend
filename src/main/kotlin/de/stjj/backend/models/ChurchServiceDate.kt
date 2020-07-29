@@ -19,7 +19,7 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
     val church = reference("church", Churches)
     val description = text("description") // HTML content
 
-    override val defaultFields = "id,date,church,description"
+    override val defaultFields = "id,date,church"
     override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
     override val apiFields = setOf(
             APIField.C("id", id, true),
@@ -32,7 +32,7 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
         val data = ctx.body(CreateOrUpdateData::class.java)
 
-        val churchID = (transaction { slice(Churches.id).select { Churches.id eq data.church }.firstOrNull() }
+        val churchID = (transaction { Churches.slice(Churches.id).select { Churches.id eq data.church }.firstOrNull() }
                 ?: throw APIModel.InvalidResourceIDException("There is no church with the ID ${data.church}."))[Churches.id]
 
         it[date] = data.date.asLocalDateTime()
