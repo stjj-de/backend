@@ -8,6 +8,7 @@ import de.stjj.backend.utils.InsufficientPermissionsException
 import de.stjj.backend.utils.user
 import io.jooby.Kooby
 import io.jooby.MediaType
+import io.jooby.StatusCode
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @ExperimentalStdlibApi
@@ -40,23 +41,21 @@ fun Kooby.contentsRoutes() {
         }
 
         get("/{id}") {
+            val jsonResponse = ctx.accept(MediaType.json) && !ctx.accept(MediaType.text)
             val id: Content.ID
 
             try {
                 id = Content.ID.valueOf(ctx.path("id").value())
             } catch (e: IllegalArgumentException) {
-                throw APIModel.InvalidResourceIDException("There is no content with this ID.")
+                ctx.responseCode = StatusCode.NOT_FOUND
+                return@get if (jsonResponse) mapOf("data" to null) else ""
             }
 
             val content = transaction { Content.findById(id) }
 
             val data = content?.content ?: ""
 
-            if (ctx.accept(MediaType.json) && !ctx.accept(MediaType.text)) {
-                mapOf("data" to data)
-            } else {
-                data
-            }
+            if (jsonResponse) mapOf("data" to data) else data
         }
     }
 }

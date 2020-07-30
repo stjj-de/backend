@@ -13,6 +13,7 @@ import de.stjj.backend.utils.json.moshi
 import io.jooby.MediaType
 import io.jooby.RouterOption
 import io.jooby.StatusCode
+import io.jooby.exception.MethodNotAllowedException
 import io.jooby.exception.NotFoundException
 import io.jooby.exception.TypeMismatchException
 import io.jooby.runApp
@@ -59,6 +60,11 @@ fun main(args: Array<String>) {
 
         error(NotFoundException::class.java) { ctx, _, _ ->
             ctx.responseCode = StatusCode.NOT_FOUND
+            ctx.send("")
+        }
+
+        error(MethodNotAllowedException::class.java) { ctx, _, _ ->
+            ctx.responseCode = StatusCode.METHOD_NOT_ALLOWED
             ctx.send("")
         }
 

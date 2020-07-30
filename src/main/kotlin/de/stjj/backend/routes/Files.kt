@@ -8,11 +8,15 @@ import de.stjj.backend.utils.*
 import io.jooby.Kooby
 import io.jooby.StatusCode
 import org.apache.tika.Tika
+import org.apache.tika.mime.MimeType
+import org.apache.tika.mime.MimeTypes
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.time.LocalDateTime
 
 fun getPathForUploadedFile(uploadedFile: UploadedFile) = "/files/${uploadedFile.id}/${encodeURIComponent(uploadedFile.title)}${uploadedFile.mimeType?.extension ?: ""}"
+
+private val tika = Tika()
 
 fun Kooby.filesRoutes() {
     if (System.getenv(DATA_DIR_ENV_VAR) == null) throw Error("DATA_DIR env variable not specified")
@@ -29,20 +33,30 @@ fun Kooby.filesRoutes() {
         } else {
             val id = NanoIdUtils.randomNanoId().take(10)
             val file = ctx.file("file")
-            val mimeType: String? = Tika().detect(file.path())
+            val mimeType: MimeType? = tika.detect(file.path())?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
+            var fileName = file.fileName
+            if (mimeType != null) {
+                val actualExtension = "." + fileName.split(".").last()
+                val correctExtensions = mimeType.extensions
+
+                if (correctExtensions.contains(actualExtension)) {
+                    fileName = fileName.removeSuffix(actualExtension)
+                }
+            }
 
             val uploadedFile = transaction {
                 UploadedFile.new(id) {
-                    title = file.fileName.toByteArray().take(255).toByteArray().toString(Charsets.UTF_8)
+                    title = fileName.toByteArray().take(255).toByteArray().toString(Charsets.UTF_8)
                     uploader = ctx.userEntityID
                     uploadedAt = LocalDateTime.now()
-                    mimeTypeName = mimeType
+                    mimeTypeName = mimeType?.name
                 }
             }
 
             Files.move(file.path(), getFileForUploadedFile(uploadedFile).toPath())
+            ctx.responseCode = StatusCode.CREATED
             ctx.setResponseHeader("Location", "/files/${id}")
-            ctx.send(StatusCode.CREATED)
+            ctx.send(id)
         }
     }
 
