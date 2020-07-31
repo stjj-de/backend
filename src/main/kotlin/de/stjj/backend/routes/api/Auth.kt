@@ -28,10 +28,12 @@ fun Kooby.authRoutes() {
             val body = ctx.body(LoginBody::class.java)
             val user = transaction { User.findById(body.id) }
 
-//            println(BCrypt.withDefaults().hash(12, body.password.toCharArray()).decodeToString())
+            val password = body.password.toByteArray().take(71).toByteArray()
+
+//            println(BCrypt.withDefaults().hash(12, password).decodeToString())
 
             if (user != null) {
-                val result = runCatching { bcryptVerifier.verify(body.password.toCharArray(), user.passwordHash) }.getOrNull()
+                val result = runCatching { bcryptVerifier.verify(password, user.passwordHash.toByteArray()) }.getOrNull()
                 if (result?.verified == true) {
                     val token = NanoIdUtils.randomNanoId(SecureRandom(), tokenAlphabet, 50)
                     transaction { user.authToken = token }
