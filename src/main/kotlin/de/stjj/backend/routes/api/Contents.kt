@@ -37,6 +37,8 @@ fun Kooby.contentsRoutes() {
                     entity.content = text
                 }
             }
+
+            Unit
         }
 
         get("/{id}") {
