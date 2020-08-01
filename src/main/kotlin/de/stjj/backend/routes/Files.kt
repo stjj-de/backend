@@ -1,5 +1,6 @@
 package de.stjj.backend.routes
 
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils
 import de.stjj.backend.models.UploadedFile
 import de.stjj.backend.models.UploadedFiles
 import de.stjj.backend.models.User
@@ -15,6 +16,7 @@ import org.apache.tika.mime.MimeTypes
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
 
@@ -33,13 +35,19 @@ fun getURLPathForUploadedFile(uploadedFile: UploadedFile): String {
 private val tika = Tika()
 
 fun Kooby.filesRoutes() {
+    Files.createDirectories(File(dataDir).resolve("tmp").toPath())
+    Files.createDirectories(File(dataDir).resolve("uploads").toPath())
+
     post("/files") {
         if (!ctx.user.hasHigherOrEqualRole(User.Role.NONE)) {
             ctx.send(StatusCode.FORBIDDEN)
         } else {
             val requiredMimeType = ctx.query("requiredMimeType").valueOrNull()
             val file = ctx.file("file")
-            val hash = getSha256OfFile(file.path().toFile())
+            val tempPath = File(dataDir).resolve("tmp/${NanoIdUtils.randomNanoId()}").toPath()
+            Files.move(file.path(), tempPath)
+
+            val hash = getSha256OfFile(tempPath.toFile())
 
             val fileAlreadyUploaded = transaction {
                 UploadedFiles
@@ -50,7 +58,7 @@ fun Kooby.filesRoutes() {
             } != null
 
             if (!fileAlreadyUploaded || requiredMimeType != null) {
-                val mimeType: MimeType? = tika.detect(file.path())?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
+                val mimeType: MimeType? = tika.detect(tempPath)?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
                 val actualMimeType = mimeType?.name ?: "application/octet-stream"
 
                 if (requiredMimeType != null && requiredMimeType != actualMimeType) {
@@ -85,13 +93,14 @@ fun Kooby.filesRoutes() {
                         }
                     }
 
-                    Files.move(file.path(), getFileForUploadedFile(uploadedFile).toPath())
+                    Files.move(tempPath, getFileForUploadedFile(uploadedFile).toPath())
                     ctx.responseCode = StatusCode.CREATED
                 }
             }
 
-            if (fileAlreadyUploaded) ctx.responseCode = StatusCode.OK
+            Files.deleteIfExists(tempPath)
 
+            if (fileAlreadyUploaded) ctx.responseCode = StatusCode.OK
             ctx.send(hash)
         }
     }
