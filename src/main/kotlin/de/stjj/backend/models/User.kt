@@ -17,8 +17,6 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 
-private val bcryptHasher = BCrypt.withDefaults()
-
 object Users: IntIdTable("users"), APIModel {
     val username = varchar("username", 30).uniqueIndex()
     val realName = varchar("real_name", 255)
@@ -63,18 +61,17 @@ object Users: IntIdTable("users"), APIModel {
 
         it[username] = data.username
         it[realName] = data.realName
+        it[displayName] = data.displayName
         it[position] = data.position
         it[role] = data.role
-
-        if (data.password != null) it[passwordHash] = bcryptHasher.hash(12, data.password.toCharArray()).decodeToString()
     }
 
     data class CreateOrUpdateData(
         val username: String,
         val realName: String,
+        val displayName: String?,
         val position: String,
-        val role: User.Role,
-        val password: String?
+        val role: User.Role
     )
 }
 
