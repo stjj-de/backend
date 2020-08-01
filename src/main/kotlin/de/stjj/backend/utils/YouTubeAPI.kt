@@ -9,11 +9,9 @@ object YouTubeAPI {
     private val httpClient = OkHttpClient()
 
     fun getVideoTitle(id: String): String? {
-        val key = System.getenv("YOUTUBE_API_KEY")
-
         val response = httpClient.newCall(
             Request.Builder()
-                .url("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=$id&key=$key")
+                .url("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=$id&key=$youtubeAPIKey")
                 .build()
         ).execute()
 
