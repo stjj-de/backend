@@ -19,29 +19,26 @@ import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 
 object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
-    override val id: Column<EntityID<String>> = char("id", 10).entityId()
-    val title = varchar("title", 255)
+    override val id: Column<EntityID<String>> = char("id", 64).entityId()
+    val title = varchar("title", 255).nullable()
     val mimeType = varchar("mime_type", 255).nullable()
     val uploadedAt = datetime("uploaded_at")
-    val uploader = reference(
-            "uploader",
+    val firstUploader = reference(
+            "first_uploader",
             Users,
             ReferenceOption.SET_NULL,
             ReferenceOption.CASCADE
     ).nullable()
-    val blurhash = varchar("blurhash", 255).nullable()
 
     override val primaryKey = PrimaryKey(id)
 
     override val writePermissionChecker = APIModel.minimumRole(User.Role.EDITOR)
-    override val defaultFields = "id,title,mimeType"
+    override val defaultFields = "title,mimeType"
     override val apiFields = setOf(
             APIField.C("id", id, true),
             APIField.C("title", title, true),
             APIField.C("mimeType", mimeType, true),
-            APIField.C("uploader", uploader, true),
-            APIField.C("uploadedAt", uploadedAt, true),
-            APIField.C("blurhash", blurhash, false)
+            APIField.C("uploadedAt", uploadedAt, true)
     )
     override val buildWhereCondition: (idValue: Value) -> Op<Boolean> = { idValue ->
         val id = idValue.value()
@@ -55,7 +52,7 @@ object UploadedFiles: IdTable<String>("uploaded_files"), APIModel {
         it[title] = data.title
     }
 
-    data class UpdateData(val title: String)
+    data class UpdateData(val title: String?)
 }
 
 class UploadedFile(id: EntityID<String>): Entity<String>(id) {
@@ -63,8 +60,7 @@ class UploadedFile(id: EntityID<String>): Entity<String>(id) {
     var title by UploadedFiles.title
     var mimeTypeName by UploadedFiles.mimeType
     var uploadedAt by UploadedFiles.uploadedAt
-    var uploader by UploadedFiles.uploader
-    var blurhash by UploadedFiles.blurhash
+    var firstUploader by UploadedFiles.firstUploader
 
     val mimeType by lazy { mimeTypeName?.let { MimeTypes.getDefaultMimeTypes().forName(it) } }
 }

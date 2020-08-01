@@ -11,6 +11,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -22,6 +23,12 @@ object Users: IntIdTable("users"), APIModel {
     val username = varchar("username", 30).uniqueIndex()
     val realName = varchar("real_name", 255)
     val displayName = varchar("display_name", 255).nullable()
+    val image = reference(
+            "image",
+            UploadedFiles,
+            ReferenceOption.SET_NULL,
+            ReferenceOption.CASCADE
+    ).nullable()
     val position = varchar("position", 255).nullable()
     val role = enumerationByName("role", 255, User.Role::class)
     val passwordHash = char("password_hash", 60)
@@ -33,6 +40,7 @@ object Users: IntIdTable("users"), APIModel {
             APIField.C("id", id, true),
             APIField.C("username", username, true),
             APIField.C("realName", realName, true),
+            APIField.C("image", image, false),
             APIField.C("position", position, true),
             APIField.C("role", role, true),
             APIField.G("displayName", setOf(realName, displayName)) { it[displayName] ?: it[realName] },
@@ -49,7 +57,7 @@ object Users: IntIdTable("users"), APIModel {
         }
     }
 
-    @ExperimentalStdlibApi
+    @OptIn(ExperimentalStdlibApi::class)
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
         val data = ctx.body(CreateOrUpdateData::class.java)
 
@@ -76,6 +84,7 @@ class User(id: EntityID<Int>): IntEntity(id) {
     var username by Users.username
     var realName by Users.realName
     var displayName by Users.displayName
+    var image by UploadedFile optionalReferencedOn Users.image
     var position by Users.position
     var passwordHash by Users.passwordHash
     var role by Users.role
@@ -85,7 +94,7 @@ class User(id: EntityID<Int>): IntEntity(id) {
     enum class Role {
         NONE,
         EDITOR,
-        ADMINISTRATOR;
+        ADMINISTRATOR
     }
 }
 

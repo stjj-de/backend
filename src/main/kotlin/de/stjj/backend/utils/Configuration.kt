@@ -1,5 +1,6 @@
 package de.stjj.backend.utils
 
+val dataDir: String = System.getenv("DATA_DIR")
 val isDev: Boolean = System.getenv("ENV").equals("development", true)
 val tzOffsetHours = System.getenv("TZ_OFFSET_HOURS").toInt()
 val hostname: String = System.getenv("HOSTNAME")

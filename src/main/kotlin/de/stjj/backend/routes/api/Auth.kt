@@ -20,7 +20,6 @@ val tokenCookieMaxAge = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS)
 
 data class LoginBody(val id: Int, val password: String)
 
-@ExperimentalStdlibApi
 fun Kooby.authRoutes() {
     path("auth") {
         post("/") { ctx ->

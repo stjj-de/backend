@@ -11,7 +11,6 @@ import io.jooby.MediaType
 import io.jooby.StatusCode
 import org.jetbrains.exposed.sql.transactions.transaction
 
-@ExperimentalStdlibApi
 fun Kooby.contentsRoutes() {
     path("/contents") {
         put("/{id}") {

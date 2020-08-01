@@ -82,7 +82,6 @@ private data class ParseResult(
         val resultRowMapper: (row: ResultRow) -> Map<String, *>
 )
 
-@ExperimentalStdlibApi
 fun Kooby.apiModelRoutes(pattern: String, model: APIModel) {
     if (model !is Table) throw Error("${model::class.simpleName} is not a Table")
 
