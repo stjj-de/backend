@@ -88,7 +88,7 @@ fun main(args: Array<String>) {
 
 fun connectToDatabase() {
     Database.connect(
-            "jdbc:mysql://$mariadbHost:$mariadbPort/$mariadbDatabase?useTimezone=true&serverTimezone=UTC",
+            "jdbc:mysql://$mariadbHost:$mariadbPort/$mariadbDatabase",
             user = mariadbUser,
             password = mariadbPassword
     )
