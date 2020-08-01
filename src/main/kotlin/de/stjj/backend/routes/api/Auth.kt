@@ -3,7 +3,10 @@ package de.stjj.backend.routes.api
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils
 import de.stjj.backend.models.User
-import de.stjj.backend.utils.*
+import de.stjj.backend.utils.AuthenticationRequiredException
+import de.stjj.backend.utils.hostname
+import de.stjj.backend.utils.isDev
+import de.stjj.backend.utils.userID
 import io.jooby.Kooby
 import io.jooby.StatusCode
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -11,7 +14,6 @@ import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
 private val bcryptVerifier = BCrypt.verifyer()
-private val bcryptHasher = BCrypt.withDefaults()
 private val tokenAlphabet = "0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW".toCharArray()
 private val tokenCookieMaxAge = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS)
 
@@ -64,16 +66,6 @@ fun Kooby.authRoutes() {
         get("/me") { ctx ->
             val userID = ctx.userID ?: throw AuthenticationRequiredException()
             mapOf("id" to userID)
-        }
-
-        put("/password") {
-            val user = ctx.user ?: throw AuthenticationRequiredException()
-
-            val password = ctx.body().value()
-            val hash = bcryptHasher.hash(12, password.toCharArray()).decodeToString()
-
-            transaction { user.passwordHash = hash }
-            ctx.send(StatusCode.OK)
         }
     }
 }
