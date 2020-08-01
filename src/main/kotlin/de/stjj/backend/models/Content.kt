@@ -18,6 +18,8 @@ class Content(id: EntityID<ID>): Entity<Content.ID>(id) {
         HOMEPAGE_INTRODUCTION,
         GEMEINDE,
         PFARRBRIEF,
-        MESSDIENERPLAN
+        MESSDIENERPLAN,
+        IMPRESSUM,
+        PRIVACY_POLICY
     }
 }
