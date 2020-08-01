@@ -87,7 +87,11 @@ fun main(args: Array<String>) {
 }
 
 fun connectToDatabase() {
-    Database.connect("jdbc:mysql://$mariadbHost:$mariadbPort/$mariadbDatabase", user = mariadbUser, password = mariadbPassword)
+    Database.connect(
+            "jdbc:mysql://$mariadbHost:$mariadbPort/$mariadbDatabase?useTimezone=true&serverTimezone=UTC",
+            user = mariadbUser,
+            password = mariadbPassword
+    )
 
     transaction {
         SchemaUtils.createMissingTablesAndColumns(
