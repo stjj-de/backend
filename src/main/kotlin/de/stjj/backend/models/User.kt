@@ -95,7 +95,7 @@ object Users: IntIdTable("users"), APIModel {
             it[image] = imageFile[UploadedFiles.id]
         }
 
-        if (data.password != null) it[passwordHash] = bcryptHasher.hash(12, data.password.toCharArray()).decodeToString()
+        if (data.password != null) it[passwordHash] = bcryptHasher.hash(12, data.password.take(71).toByteArray()).decodeToString()
     }
 
     data class CreateOrUpdateData(

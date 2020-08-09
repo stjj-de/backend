@@ -27,7 +27,7 @@ fun Kooby.authRoutes() {
             val body = ctx.body(LoginBody::class.java)
             val user = transaction { User.findById(body.id) }
 
-            val password = body.password.toByteArray().take(71).toByteArray()
+            val password = body.password.take(71).toByteArray()
 
             if (user != null) {
                 val result = runCatching { bcryptVerifier.verify(password, user.passwordHash.toByteArray()) }.getOrNull()

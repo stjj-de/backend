@@ -65,6 +65,7 @@ object Posts: IntIdTable("posts"), APIModel {
             else Posts.id eq idValue.intValue()
         }
     }
+
     override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val onlyRelevant = ctx.query("onlyRelevant").booleanValue(false)
         val onlyPublished = ctx.query("onlyPublished").booleanValue(true)
