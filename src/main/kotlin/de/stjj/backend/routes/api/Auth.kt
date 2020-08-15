@@ -3,10 +3,7 @@ package de.stjj.backend.routes.api
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils
 import de.stjj.backend.models.User
-import de.stjj.backend.utils.AuthenticationRequiredException
-import de.stjj.backend.utils.hostname
-import de.stjj.backend.utils.isDev
-import de.stjj.backend.utils.userID
+import de.stjj.backend.utils.*
 import io.jooby.Kooby
 import io.jooby.StatusCode
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -51,7 +48,8 @@ fun Kooby.authRoutes() {
         }
 
         delete("/") {
-            ctx.userID ?: throw AuthenticationRequiredException()
+            ctx.user ?: throw AuthenticationRequiredException()
+            transaction { ctx.user!!.authToken = null }
 
             ctx.setResponseHeader(
                     "Set-Cookie",
