@@ -18,6 +18,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 
 class InvalidEventFilterException: APIException(
         StatusCode.BAD_REQUEST,
@@ -120,8 +121,8 @@ object Events: IntIdTable("events"), APIModel {
         it[title] = data.title
         it[color] = data.color
         it[description] = data.description
-        it[date] = data.date.asLocalDateTime()
-        it[endDate] = data.endDate?.asLocalDateTime()
+        it[date] = data.date.asLocalDateTime().truncatedTo(ChronoUnit.MINUTES)
+        it[endDate] = data.endDate?.asLocalDateTime()?.truncatedTo(ChronoUnit.MINUTES)
         it[relatedPost] = relatedPostID
     }
 

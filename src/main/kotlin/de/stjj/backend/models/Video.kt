@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 object Videos: IntIdTable("videos"), APIModel {
     val title = varchar("title", 255)
@@ -47,7 +48,7 @@ object Videos: IntIdTable("videos"), APIModel {
             val data = ctx.body(UpdateData::class)
 
             it[title] = data.title
-            it[publishedAt] = data.publishedAt.asLocalDateTime()
+            it[publishedAt] = data.publishedAt.asLocalDateTime().truncatedTo(ChronoUnit.MINUTES)
         } else {
             val data = ctx.body(CreateData::class)
             val title = YouTubeAPI.getVideoTitle(data.youtubeVideoID)

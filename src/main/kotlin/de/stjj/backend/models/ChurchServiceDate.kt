@@ -9,10 +9,13 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
     val date = datetime("date")
@@ -27,7 +30,15 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
             APIField.C("church", church),
             APIField.C("description", description)
     )
+
     override val buildWhereCondition = APIModel.createIntIDGetOneSelectExpression(ChurchServiceDates)
+    override val buildSelectAllWhereCondition = { ctx: Context ->
+        // Delete all church service dates that started at least an hour ago
+        transaction { ChurchServiceDates.deleteWhere { date less LocalDateTime.now().minusHours(1) } }
+
+        // Select all
+        null
+    }
 
     override fun applyData(ctx: Context, it: UpdateBuilder<Int>, isUpdate: Boolean) {
         val data = ctx.body(CreateOrUpdateData::class.java)
@@ -35,7 +46,7 @@ object ChurchServiceDates: IntIdTable("church_service_dates"), APIModel {
         val churchID = (transaction { Churches.slice(Churches.id).select { Churches.id eq data.church }.firstOrNull() }
                 ?: throw APIModel.InvalidResourceIDException("There is no church with the ID ${data.church}."))[Churches.id]
 
-        it[date] = data.date.asLocalDateTime()
+        it[date] = data.date.asLocalDateTime().truncatedTo(ChronoUnit.MINUTES)
         it[church] = churchID
         it[description] = data.description
     }

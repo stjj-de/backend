@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 object Posts: IntIdTable("posts"), APIModel {
     val slug = varchar("slug", 50).uniqueIndex()
@@ -99,8 +100,8 @@ object Posts: IntIdTable("posts"), APIModel {
 
         it[slug] = data.slug
         it[title] = data.title
-        it[publishedAt] = data.publishedAt?.asLocalDateTime()
-        it[relevantUntil] = data.relevantUntil?.asLocalDateTime()
+        it[publishedAt] = data.publishedAt?.asLocalDateTime()?.truncatedTo(ChronoUnit.MINUTES)
+        it[relevantUntil] = data.relevantUntil?.asLocalDateTime()?.truncatedTo(ChronoUnit.MINUTES)
         it[excerpt] = data.excerpt
         it[content] = data.content
         it[group] = groupID

@@ -17,6 +17,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.time.LocalDateTime
 
@@ -42,8 +43,13 @@ fun Kooby.filesRoutes() {
         if (!ctx.user.hasHigherOrEqualRole(User.Role.NONE)) {
             ctx.send(StatusCode.FORBIDDEN)
         } else {
-            val requiredMimeType = ctx.query("requiredMimeType").valueOrNull()
-            val file = ctx.file("file")
+            val allowedMimeTypes = ctx.query("allowedMimeTypes").valueOrNull()?.split(";")
+            val file = try {
+                ctx.file("file")
+            } catch (e: FileNotFoundException) {
+                throw APIException(StatusCode.BAD_REQUEST, "NO_FILE", "No file in request.")
+            }
+
             val tempPath = File(dataDir).resolve("tmp/${NanoIdUtils.randomNanoId()}").toPath()
             Files.move(file.path(), tempPath)
 
@@ -57,17 +63,19 @@ fun Kooby.filesRoutes() {
                     .firstOrNull()
             } != null
 
-            if (!fileAlreadyUploaded || requiredMimeType != null) {
-                val mimeType: MimeType? = tika.detect(tempPath)?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
+            var mimeType: MimeType? = null
+
+            if (!fileAlreadyUploaded || allowedMimeTypes != null) {
+                mimeType = tika.detect(tempPath)?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
                 val actualMimeType = mimeType?.name ?: "application/octet-stream"
 
-                if (requiredMimeType != null && requiredMimeType != actualMimeType) {
+                if (allowedMimeTypes != null && !allowedMimeTypes.contains(actualMimeType)) {
                     throw APIException(
                         StatusCode.UNSUPPORTED_MEDIA_TYPE,
-                        "MIME_TYPE_NOT_EXPECTED",
-                        "The actual mime type of the uploaded file does not match the one specified in the request.",
+                        "MIME_TYPE_NOT_ALLOWED",
+                        "The mime type of the uploaded file is not allowed.",
                         details = mapOf(
-                            "required" to requiredMimeType,
+                            "allowed" to allowedMimeTypes,
                             "actual" to actualMimeType
                         )
                     )
@@ -101,7 +109,12 @@ fun Kooby.filesRoutes() {
             Files.deleteIfExists(tempPath)
 
             if (fileAlreadyUploaded) ctx.responseCode = StatusCode.OK
-            ctx.send(hash)
+
+            mapOf(
+                "id" to hash,
+                "mimeType" to mimeType?.name,
+                "isNew" to !fileAlreadyUploaded
+            )
         }
     }
 
