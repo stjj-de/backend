@@ -25,6 +25,9 @@ fun Kooby.contentsRoutes() {
                 throw APIModel.InvalidResourceIDException("There is no content with this ID.")
             }
 
+            if (id == Content.ID.ADMIN_NEWS && ctx.user?.role?.isHigherOrEqual(User.Role.ADMINISTRATOR) != true)
+                throw InsufficientPermissionsException("You are not allowed to edit this content.")
+
             transaction {
                 val entity = Content.findById(id)
                 val text = ctx.body().value(Charsets.UTF_8)

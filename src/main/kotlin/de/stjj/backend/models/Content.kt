@@ -20,6 +20,7 @@ class Content(id: EntityID<ID>): Entity<Content.ID>(id) {
         PFARRBRIEF,
         MESSDIENERPLAN,
         IMPRESSUM,
-        PRIVACY_POLICY
+        PRIVACY_POLICY,
+        ADMIN_NEWS
     }
 }
