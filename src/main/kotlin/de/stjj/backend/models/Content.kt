@@ -16,6 +16,7 @@ class Content(id: EntityID<ID>): Entity<Content.ID>(id) {
 
     enum class ID {
         HOMEPAGE_INTRODUCTION,
+        HOMEPAGE_TOP,
         GEMEINDE,
         PFARRBRIEF,
         MESSDIENERPLAN,
