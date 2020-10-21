@@ -4,6 +4,7 @@ import com.squareup.moshi.JsonDataException
 import de.stjj.backend.models.*
 import de.stjj.backend.routes.api.APIErrorResponse
 import de.stjj.backend.routes.api.APIException
+import de.stjj.backend.routes.api.towerPictureRoutes
 import de.stjj.backend.routes.apiRoutes
 import de.stjj.backend.routes.filesRoutes
 import de.stjj.backend.utils.*
@@ -32,6 +33,7 @@ fun main(args: Array<String>) {
 
         filesRoutes()
         apiRoutes()
+        towerPictureRoutes()
 
         error(JsonDataException::class.java) { ctx, e, _ ->
             ctx.responseCode = StatusCode.BAD_REQUEST

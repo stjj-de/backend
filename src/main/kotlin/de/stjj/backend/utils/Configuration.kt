@@ -11,3 +11,6 @@ val mariadbDatabase = System.getenv("MARIADB_DATABASE") ?: "stjj-de"
 val mariadbUser = System.getenv("MARIADB_USER") ?: "stjj"
 val mariadbPassword = System.getenv("MARIADB_PASSWORD")
         ?: error("Please specify the MARIADB_PASSWORD environment variable")
+
+val towerPictureSecret = System.getenv("TOWER_PICTURE_SECRET")
+        ?: error("Please specify the TOWER_PICTURE_SECRET environment variable")

@@ -6,6 +6,7 @@ import de.stjj.backend.models.UploadedFiles
 import de.stjj.backend.models.User
 import de.stjj.backend.models.hasHigherOrEqualRole
 import de.stjj.backend.routes.api.APIException
+import de.stjj.backend.routes.api.towerPictureRoutes
 import de.stjj.backend.utils.*
 import io.jooby.HandlerContext
 import io.jooby.Kooby
@@ -19,7 +20,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDateTime
+
+private val dataPath: Path = File(dataDir).toPath()
 
 fun getURLPathForUploadedFile(uploadedFile: UploadedFile): String {
     val builder = StringBuilder()
@@ -36,90 +40,95 @@ fun getURLPathForUploadedFile(uploadedFile: UploadedFile): String {
 private val tika = Tika()
 
 fun Kooby.filesRoutes() {
-    Files.createDirectories(File(dataDir).resolve("tmp").toPath())
-    Files.createDirectories(File(dataDir).resolve("uploads").toPath())
+    Files.createDirectories(dataPath.resolve("tmp"))
+    Files.createDirectories(dataPath.resolve("uploads"))
 
-    post("/files") {
-        if (!ctx.user.hasHigherOrEqualRole(User.Role.NONE)) {
-            ctx.send(StatusCode.FORBIDDEN)
-        } else {
-            val allowedMimeTypes = ctx.query("allowedMimeTypes").valueOrNull()?.split(";")
-            val file = try {
-                ctx.file("file")
-            } catch (e: FileNotFoundException) {
-                throw APIException(StatusCode.BAD_REQUEST, "NO_FILE", "No file in request.")
-            }
+    path("/files") {
+        post("/") {
+            if (!ctx.user.hasHigherOrEqualRole(User.Role.NONE)) {
+                ctx.send(StatusCode.FORBIDDEN)
+            } else {
+                val allowedMimeTypes = ctx.query("allowedMimeTypes").valueOrNull()?.split(";")
+                val file = try {
+                    ctx.file("file")
+                } catch (e: FileNotFoundException) {
+                    throw APIException(StatusCode.BAD_REQUEST, "NO_FILE", "No file in request.")
+                }
 
-            val tempPath = File(dataDir).resolve("tmp/${NanoIdUtils.randomNanoId()}").toPath()
-            Files.move(file.path(), tempPath)
+                val tempPath = File(dataDir).resolve("tmp/${NanoIdUtils.randomNanoId()}").toPath()
+                Files.move(file.path(), tempPath)
+                file.destroy()
 
-            val hash = getSha256OfFile(tempPath.toFile())
+                val hash = getSha256OfFile(tempPath.toFile())
 
-            val fileAlreadyUploaded = transaction {
-                UploadedFiles
-                    .slice(UploadedFiles.id)
-                    .select(with (SqlExpressionBuilder) { UploadedFiles.id eq hash })
-                    .limit(1)
-                    .firstOrNull()
-            } != null
+                val fileAlreadyUploaded = transaction {
+                    UploadedFiles
+                        .slice(UploadedFiles.id)
+                        .select(with (SqlExpressionBuilder) { UploadedFiles.id eq hash })
+                        .limit(1)
+                        .firstOrNull()
+                } != null
 
-            var mimeType: MimeType? = null
+                var mimeType: MimeType? = null
 
-            if (!fileAlreadyUploaded || allowedMimeTypes != null) {
-                mimeType = tika.detect(tempPath)?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
-                val actualMimeType = mimeType?.name ?: "application/octet-stream"
+                if (!fileAlreadyUploaded || allowedMimeTypes != null) {
+                    mimeType = tika.detect(tempPath)?.let { MimeTypes.getDefaultMimeTypes().forName(it) }
+                    val actualMimeType = mimeType?.name ?: "application/octet-stream"
 
-                if (allowedMimeTypes != null && !allowedMimeTypes.contains(actualMimeType)) {
-                    throw APIException(
-                        StatusCode.UNSUPPORTED_MEDIA_TYPE,
-                        "MIME_TYPE_NOT_ALLOWED",
-                        "The mime type of the uploaded file is not allowed.",
-                        details = mapOf(
-                            "allowed" to allowedMimeTypes,
-                            "actual" to actualMimeType
+                    if (allowedMimeTypes != null && !allowedMimeTypes.contains(actualMimeType)) {
+                        throw APIException(
+                            StatusCode.UNSUPPORTED_MEDIA_TYPE,
+                            "MIME_TYPE_NOT_ALLOWED",
+                            "The mime type of the uploaded file is not allowed.",
+                            details = mapOf(
+                                "allowed" to allowedMimeTypes,
+                                "actual" to actualMimeType
+                            )
                         )
-                    )
-                }
-
-                if (!fileAlreadyUploaded) {
-                    var fileName = file.fileName
-                    if (mimeType != null) {
-                        val actualExtension = "." + fileName.split(".").last()
-                        val correctExtensions = mimeType.extensions
-
-                        if (correctExtensions.contains(actualExtension)) {
-                            fileName = fileName.removeSuffix(actualExtension)
-                        }
                     }
 
-                    val uploadedFile = transaction {
-                        UploadedFile.new(hash) {
-                            title = fileName.toByteArray().take(255).toByteArray().toString(Charsets.UTF_8)
-                            firstUploader = ctx.userEntityID
-                            uploadedAt = LocalDateTime.now()
-                            mimeTypeName = mimeType?.name
-                        }
-                    }
+                    if (!fileAlreadyUploaded) {
+                        var fileName = file.fileName
+                        if (mimeType != null) {
+                            val actualExtension = "." + fileName.split(".").last()
+                            val correctExtensions = mimeType.extensions
 
-                    Files.move(tempPath, getFileForUploadedFile(uploadedFile).toPath())
-                    ctx.responseCode = StatusCode.CREATED
+                            if (correctExtensions.contains(actualExtension)) {
+                                fileName = fileName.removeSuffix(actualExtension)
+                            }
+                        }
+
+                        val uploadedFile = transaction {
+                            UploadedFile.new(hash) {
+                                title = fileName.toByteArray().take(255).toByteArray().toString(Charsets.UTF_8)
+                                firstUploader = ctx.userEntityID
+                                uploadedAt = LocalDateTime.now()
+                                mimeTypeName = mimeType?.name
+                            }
+                        }
+
+                        Files.move(tempPath, getFileForUploadedFile(uploadedFile).toPath())
+                        ctx.responseCode = StatusCode.CREATED
+                    }
                 }
+
+                Files.deleteIfExists(tempPath)
+
+                if (fileAlreadyUploaded) ctx.responseCode = StatusCode.OK
+
+                mapOf(
+                    "id" to hash,
+                    "mimeType" to mimeType?.name,
+                    "isNew" to !fileAlreadyUploaded
+                )
             }
-
-            Files.deleteIfExists(tempPath)
-
-            if (fileAlreadyUploaded) ctx.responseCode = StatusCode.OK
-
-            mapOf(
-                "id" to hash,
-                "mimeType" to mimeType?.name,
-                "isNew" to !fileAlreadyUploaded
-            )
         }
-    }
 
-    get("/files/{id}") { handleGetFile() }
-    get("/files/{id}/*") { handleGetFile() }
+        get("/{id}") { handleGetFile() }
+        get("/{id}/*") { handleGetFile() }
+
+        towerPictureRoutes()
+    }
 }
 
 fun HandlerContext.handleGetFile() {
