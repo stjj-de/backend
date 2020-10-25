@@ -1,10 +1,8 @@
 package de.stjj.backend.routes
 
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils
-import de.stjj.backend.models.UploadedFile
-import de.stjj.backend.models.UploadedFiles
-import de.stjj.backend.models.User
-import de.stjj.backend.models.hasHigherOrEqualRole
+import com.google.common.base.CaseFormat
+import de.stjj.backend.models.*
 import de.stjj.backend.routes.api.APIException
 import de.stjj.backend.utils.*
 import io.jooby.HandlerContext
@@ -118,13 +116,38 @@ fun Kooby.filesRoutes() {
         }
     }
 
+    get("/files/from-content/{id}") {
+        val idString = ctx.path("id").value()
+
+        var invalid = true
+
+        val id = runCatching {
+            Content.ID.valueOf(CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_UNDERSCORE, idString))
+        }.getOrNull()
+
+        if (id != null) {
+            if (id.file) {
+                invalid = false
+
+                val content = transaction { Content.findById(id) }
+                if (content != null) {
+                    ctx.sendRedirect("/files/${content.content}")
+                    return@get Unit
+                }
+            }
+        }
+
+        ctx.sendRedirect("/file404?invalid=$invalid&content=$idString")
+    }
+
     get("/files/{id}") { handleGetFile() }
     get("/files/{id}/*") { handleGetFile() }
 }
 
 fun HandlerContext.handleGetFile() {
-    val uploadedFile = transaction { UploadedFile.findById(ctx.path("id").value()) }
-    if (uploadedFile == null) ctx.send(StatusCode.NOT_FOUND)
+    val id = ctx.path("id").value()
+    val uploadedFile = transaction { UploadedFile.findById(id) }
+    if (uploadedFile == null) ctx.sendRedirect("/file404?id=$id")
     else {
         val path = getURLPathForUploadedFile(uploadedFile)
 

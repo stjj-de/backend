@@ -14,12 +14,12 @@ class Content(id: EntityID<ID>): Entity<Content.ID>(id) {
     companion object : EntityClass<ID, Content>(Contents)
     var content by Contents.content
 
-    enum class ID {
+    enum class ID(val file: Boolean = false) {
         HOMEPAGE_INTRODUCTION,
         HOMEPAGE_TOP,
         GEMEINDE,
-        PFARRBRIEF,
-        MESSDIENERPLAN,
+        PFARRBRIEF(true),
+        MESSDIENERPLAN(true),
         IMPRESSUM,
         PRIVACY_POLICY,
         ADMIN_NEWS,

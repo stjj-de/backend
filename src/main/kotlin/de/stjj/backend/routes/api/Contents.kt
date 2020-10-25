@@ -13,6 +13,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Kooby.contentsRoutes() {
     path("/contents") {
+        // TODO: Validate content for file contents
+
         put("/{id}") {
             if (ctx.user?.role?.isHigherOrEqual(User.Role.EDITOR) != true)
                 throw InsufficientPermissionsException("You are not allowed to modify contents.")
