@@ -124,7 +124,6 @@ fun Kooby.filesRoutes() {
         val id = runCatching {
             Content.ID.valueOf(CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_UNDERSCORE, idString))
         }.getOrNull()
-
         if (id != null) {
             if (id.file) {
                 invalid = false

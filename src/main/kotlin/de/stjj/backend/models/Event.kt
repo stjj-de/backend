@@ -61,7 +61,10 @@ object Events: IntIdTable("events"), APIModel {
     override val buildSelectAllWhereCondition = fun(ctx: Context): Op<Boolean>? {
         val filter = ctx.query("filter").valueOrNull() ?: return null
 
+        // inclusive
         val startDate: LocalDate
+
+        // exclusive
         val endDate: LocalDate
 
         val dateStrings = filter.split(":")
@@ -76,7 +79,7 @@ object Events: IntIdTable("events"), APIModel {
                     ) throw InvalidEventFilterException()
 
                     startDate = LocalDate.parse(startDateString)
-                    endDate = LocalDate.parse(endDateString)
+                    endDate = LocalDate.parse(endDateString).plusDays(1)
                 }
                 1 -> {
                     val dateString = dateStrings[0]
@@ -84,7 +87,7 @@ object Events: IntIdTable("events"), APIModel {
                     when (dateString.split("-").count()) {
                         2 -> {
                             // filter by month
-                            val date = LocalDate.parse("$dateString-01").let { it.minusDays(it.dayOfMonth.toLong()) }
+                            val date = LocalDate.parse("$dateString-01")
 
                             startDate = date
                             endDate = date.plusMonths(1)
@@ -92,7 +95,7 @@ object Events: IntIdTable("events"), APIModel {
                         3 -> {
                             // filter by day
                             startDate = LocalDate.parse(dateString)
-                            endDate = startDate
+                            endDate = startDate.plusDays(1)
                         }
                         else -> throw InvalidEventFilterException()
                     }
@@ -101,7 +104,7 @@ object Events: IntIdTable("events"), APIModel {
             }
 
             return with(SqlExpressionBuilder) {
-                date greaterEq startDate.atStartOfDay() and (date less endDate.plusDays(1).atStartOfDay())
+                date greaterEq startDate.atStartOfDay() and (date less endDate.atStartOfDay())
             }
         } catch (e: DateTimeParseException) {
             throw InvalidEventFilterException()

@@ -1,1 +1,1 @@
-rootProject.name = "stjj-backend"
+rootProject.name = "backend"
