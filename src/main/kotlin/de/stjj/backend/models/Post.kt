@@ -98,6 +98,14 @@ object Posts: IntIdTable("posts"), APIModel {
                     ?: throw APIModel.InvalidResourceIDException("There is no group with the ID ${data.group}."))[Groups.id]
         }
 
+        val authorID = data.author?.let { id ->
+            if (!ctx.user.hasHigherOrEqualRole(User.Role.EDITOR))
+                throw InsufficientPermissionsException("You are not allowed to change the post's author.")
+
+            (transaction { Users.slice(Users.id).select { Users.id eq id }.firstOrNull() }
+                ?: throw APIModel.InvalidResourceIDException("There is no user with the ID ${data.author}."))[Users.id]
+        }
+
         it[slug] = data.slug
         it[title] = data.title
         it[publishedAt] = data.publishedAt?.asLocalDateTime()?.truncatedTo(ChronoUnit.MINUTES)
@@ -106,7 +114,8 @@ object Posts: IntIdTable("posts"), APIModel {
         it[content] = data.content
         it[group] = groupID
 
-        if (!isUpdate) it[author] = ctx.userEntityID!!
+        if (authorID != null) it[author] = authorID
+        else if (!isUpdate) it[author] = ctx.userEntityID!!
     }
 
     override fun getCreatedResponseData(ctx: Context, resultRow: ResultRow): Any? = mapOf("id" to resultRow[id].value)
@@ -118,7 +127,8 @@ object Posts: IntIdTable("posts"), APIModel {
             val publishedAt: Instant?,
             val relevantUntil: Instant?,
             val excerpt: String,
-            val content: String
+            val content: String,
+            val author: Int?
     )
 }
 
