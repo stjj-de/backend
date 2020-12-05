@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk8:alpine-jre
+FROM adoptopenjdk/openjdk14:alpine-jre
 COPY ./build/libs/stjj-backend.jar /app/stjj-backend.jar
 WORKDIR /app
 
