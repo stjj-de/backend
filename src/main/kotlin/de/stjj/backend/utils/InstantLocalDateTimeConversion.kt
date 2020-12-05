@@ -2,10 +2,7 @@ package de.stjj.backend.utils
 
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.util.*
 
-// I really don't understand this, but sometimes it has to be 2 and sometimes 0
-private val zoneOffset = ZoneOffset.ofHours(tzOffsetHours)
-
-fun Instant.asLocalDateTime() = LocalDateTime.ofInstant(this, zoneOffset)!!
-fun LocalDateTime.asInstant() = toInstant(zoneOffset)!!
+fun Instant.asLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(this, Calendar.getInstance().timeZone.toZoneId())
+fun LocalDateTime.asInstant(): Instant = atZone(Calendar.getInstance().timeZone.toZoneId()).toInstant()

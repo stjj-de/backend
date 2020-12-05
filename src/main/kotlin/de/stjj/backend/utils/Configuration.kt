@@ -2,7 +2,6 @@ package de.stjj.backend.utils
 
 val dataDir: String = System.getenv("DATA_DIR")
 val isDev: Boolean = System.getenv("ENV").equals("development", true)
-val tzOffsetHours = System.getenv("TZ_OFFSET_HOURS").toInt()
 val hostname: String = System.getenv("HOSTNAME")
 val youtubeAPIKey: String = System.getenv("YOUTUBE_API_KEY")
 val mariadbHost = System.getenv("MARIADB_HOST") ?: "127.0.0.1"
