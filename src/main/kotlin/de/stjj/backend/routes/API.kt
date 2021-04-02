@@ -8,8 +8,6 @@ import io.jooby.Kooby
 
 fun Kooby.apiRoutes() {
     path("/api") {
-        // TODO: Add caching where appropriate
-
         apiModelRoutes("/events", Events)
         apiModelRoutes("/church-service-dates", ChurchServiceDates)
         apiModelRoutes("/churches", Churches)

@@ -23,6 +23,7 @@ class Content(id: EntityID<ID>): Entity<Content.ID>(id) {
         IMPRESSUM,
         PRIVACY_POLICY,
         ADMIN_NEWS,
-        MEDIATHEK
+        MEDIATHEK,
+        LIVE_VIDEO_ID
     }
 }

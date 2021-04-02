@@ -32,7 +32,7 @@ fun Kooby.contentsRoutes() {
 
             transaction {
                 val entity = Content.findById(id)
-                val text = ctx.body().value(Charsets.UTF_8)
+                val text = ctx.body().valueOrNull() ?: ""
 
                 if (entity == null) {
                     Content.new(id) {
