@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "videos",
+  "info": {
+    "singularName": "video",
+    "pluralName": "videos",
+    "displayName": "Video",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "minLength": 1
+    },
+    "youtubeVideoId": {
+      "type": "string",
+      "required": true,
+      "minLength": 5,
+      "unique": true
+    },
+    "publicationDate": {
+      "type": "date",
+      "required": true
+    },
+    "richContent": {
+      "type": "dynamiczone",
+      "components": [
+        "rich.file",
+        "rich.heading",
+        "rich.picture",
+        "rich.post-link",
+        "rich.markdown"
+      ],
+      "required": true
+    }
+  }
+}

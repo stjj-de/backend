@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_rich_markdowns",
+  "info": {
+    "displayName": "Markdown",
+    "icon": "arrow-circle-down"
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "text",
+      "required": true,
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_person_people",
+  "info": {
+    "displayName": "person",
+    "icon": "smile",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "person": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::person.person"
+    }
+  }
+}

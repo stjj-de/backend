@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "churches",
+  "info": {
+    "singularName": "church",
+    "pluralName": "churches",
+    "displayName": "Church"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "minLength": 1
+    },
+    "location": {
+      "type": "string",
+      "required": true,
+      "minLength": 1
+    },
+    "text": {
+      "type": "text",
+      "required": true,
+      "minLength": 1
+    },
+    "image": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false,
+      "required": true
+    }
+  }
+}

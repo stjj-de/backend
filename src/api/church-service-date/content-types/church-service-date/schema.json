@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "church_service_dates",
+  "info": {
+    "singularName": "church-service-date",
+    "pluralName": "church-service-dates",
+    "displayName": "ChurchServiceDate",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "minLength": 1
+    },
+    "text": {
+      "type": "text",
+      "required": false
+    },
+    "date": {
+      "type": "datetime",
+      "required": true
+    },
+    "willBeStreamed": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "church": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::church.church"
+    }
+  }
+}

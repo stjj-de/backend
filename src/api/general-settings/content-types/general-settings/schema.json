@@ -1,0 +1,54 @@
+{
+  "kind": "singleType",
+  "collectionName": "general_settingss",
+  "info": {
+    "singularName": "general-settings",
+    "pluralName": "general-settingss",
+    "displayName": "Einstellungen",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "livestreamVideoId": {
+      "type": "string",
+      "unique": false,
+      "regex": "^[a-zA-Z0-9_-]+$",
+      "required": false
+    },
+    "acolyteSchedule": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "files"
+      ]
+    },
+    "pastors": {
+      "type": "component",
+      "repeatable": true,
+      "component": "person.person",
+      "required": true
+    },
+    "startPageLinks": {
+      "displayName": "link",
+      "type": "component",
+      "repeatable": true,
+      "component": "general.link",
+      "required": true
+    },
+    "officeSectionContent": {
+      "type": "dynamiczone",
+      "components": [
+        "rich.file",
+        "rich.markdown",
+        "rich.picture",
+        "rich.post-link",
+        "rich.heading"
+      ],
+      "required": true
+    }
+  }
+}

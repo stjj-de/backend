@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_rich_files",
+  "info": {
+    "displayName": "file",
+    "icon": "file-download",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "files",
+        "videos",
+        "images"
+      ]
+    },
+    "label": {
+      "type": "string",
+      "required": true,
+      "minLength": 1
+    }
+  }
+}

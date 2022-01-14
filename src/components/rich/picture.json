@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_rich_pictures",
+  "info": {
+    "displayName": "picture",
+    "icon": "image"
+  },
+  "options": {},
+  "attributes": {
+    "picture": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false,
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "posts",
+  "info": {
+    "singularName": "post",
+    "pluralName": "posts",
+    "displayName": "Post",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 100
+    },
+    "publicationDate": {
+      "type": "date",
+      "required": true
+    },
+    "slug": {
+      "type": "string",
+      "required": true,
+      "regex": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 100,
+      "minLength": 2,
+      "unique": true
+    },
+    "authors": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::person.person"
+    },
+    "content": {
+      "type": "dynamiczone",
+      "components": [
+        "rich.heading",
+        "rich.picture",
+        "rich.file",
+        "rich.post-link",
+        "rich.markdown"
+      ],
+      "required": true
+    },
+    "featured": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  }
+}
