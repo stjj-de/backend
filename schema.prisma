@@ -114,3 +114,14 @@ model SettingsSingleton {
   officeSectionContent     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
   mediaLibraryPageContent  String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
 }
+
+model Picture {
+  id             String  @id @default(cuid())
+  file_filesize  Int?
+  file_extension String?
+  file_width     Int?
+  file_height    Int?
+  file_mode      String?
+  file_id        String?
+  altText        String  @default("")
+}

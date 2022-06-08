@@ -10,11 +10,34 @@ import { document } from '@keystone-6/fields-document';
 
 import { Lists } from '.keystone/types';
 import { Session } from "./auth"
+import { componentBlocks } from "./componentBlocks"
 
 const isAdminPredicate = ({ session }: { session?: Session }) => session?.data?.isAdmin == true
 const isEditorPredicate = ({ session }: { session?: Session }) => session?.data?.id !== undefined
 
 const isPublishedFilter = ({ session }: { session?: Session }) => isEditorPredicate({ session }) ? {} : { publicationDate: { lte: new Date().toISOString() } }
+
+const fullyEnabledDocument = ({ label }: { label: string }) => document({
+  label,
+  formatting: {
+    listTypes: true,
+    blockTypes: {
+      blockquote: true
+    },
+    headingLevels: [1, 2, 3],
+    inlineMarks: {
+      bold: true,
+      italic: true,
+      superscript: true,
+      strikethrough: true
+    }
+  },
+  links: true,
+  componentBlocks,
+  ui: {
+    views: require.resolve("./componentBlocks")
+  }
+})
 
 const slug = (label: string = "Slug") => text({
   label,
@@ -312,22 +335,8 @@ export const lists: Lists = {
         }
       }),
       slug: slug(),
-      content: document({
-        label: "Content",
-        formatting: {
-          listTypes: true,
-          blockTypes: {
-            blockquote: true
-          },
-          headingLevels: [1, 2, 3],
-          inlineMarks: {
-            bold: true,
-            italic: true,
-            superscript: true,
-            strikethrough: true
-          }
-        },
-        links: true
+      content: fullyEnabledDocument({
+        label: "Content"
       })
     },
     access: {
@@ -374,22 +383,8 @@ export const lists: Lists = {
       featured: checkbox({
         label: "Is featured"
       }),
-      content: document({
-        label: "Content",
-        formatting: {
-          listTypes: true,
-          blockTypes: {
-            blockquote: true
-          },
-          headingLevels: [1, 2, 3],
-          inlineMarks: {
-            bold: true,
-            italic: true,
-            superscript: true,
-            strikethrough: true
-          }
-        },
-        links: true
+      content: fullyEnabledDocument({
+        label: "Content"
       })
     },
     access: {
@@ -552,6 +547,26 @@ export const lists: Lists = {
       },
       hideDelete: () => true,
       hideCreate: async ({ session, context }) => !(isAdminPredicate({ session }) && (await context.db.SettingsSingleton.count()) == 0)
+    }
+  }),
+
+  Picture: list({
+    fields: {
+      file: image({
+        label: "Picture file"
+      }),
+      altText: text({
+        label: "Alt text",
+        validation: {
+          isRequired: false
+        }
+      })
+    },
+    ui: {
+      listView: {
+        initialColumns: ["altText"]
+      },
+      labelField: "altText"
     }
   })
 };

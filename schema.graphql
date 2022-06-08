@@ -208,26 +208,6 @@ input ChurchWhereUniqueInput {
   id: ID
 }
 
-type LocalImageFieldOutput implements ImageFieldOutput {
-  id: ID!
-  filesize: Int!
-  width: Int!
-  height: Int!
-  extension: ImageExtension!
-  ref: String!
-  url: String!
-}
-
-type CloudImageFieldOutput implements ImageFieldOutput {
-  id: ID!
-  filesize: Int!
-  width: Int!
-  height: Int!
-  extension: ImageExtension!
-  ref: String!
-  url: String!
-}
-
 input ChurchWhereInput {
   AND: [ChurchWhereInput!]
   OR: [ChurchWhereInput!]
@@ -728,6 +708,64 @@ input LinkRelateToManyForCreateInput {
   connect: [LinkWhereUniqueInput!]
 }
 
+type Picture {
+  id: ID!
+  file: ImageFieldOutput
+  altText: String
+}
+
+input PictureWhereUniqueInput {
+  id: ID
+}
+
+type LocalImageFieldOutput implements ImageFieldOutput {
+  id: ID!
+  filesize: Int!
+  width: Int!
+  height: Int!
+  extension: ImageExtension!
+  ref: String!
+  url: String!
+}
+
+type CloudImageFieldOutput implements ImageFieldOutput {
+  id: ID!
+  filesize: Int!
+  width: Int!
+  height: Int!
+  extension: ImageExtension!
+  ref: String!
+  url: String!
+}
+
+input PictureWhereInput {
+  AND: [PictureWhereInput!]
+  OR: [PictureWhereInput!]
+  NOT: [PictureWhereInput!]
+  id: IDFilter
+  altText: StringFilter
+}
+
+input PictureOrderByInput {
+  id: OrderDirection
+  altText: OrderDirection
+}
+
+input PictureUpdateInput {
+  file: ImageFieldInput
+  altText: String
+}
+
+input PictureUpdateArgs {
+  where: PictureWhereUniqueInput!
+  data: PictureUpdateInput!
+}
+
+input PictureCreateInput {
+  file: ImageFieldInput
+  altText: String
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -820,6 +858,15 @@ type Mutation {
   deleteSettingsSingletons(
     where: [SettingsSingletonWhereUniqueInput!]!
   ): [SettingsSingleton]
+  createPicture(data: PictureCreateInput!): Picture
+  createPictures(data: [PictureCreateInput!]!): [Picture]
+  updatePicture(
+    where: PictureWhereUniqueInput!
+    data: PictureUpdateInput!
+  ): Picture
+  updatePictures(data: [PictureUpdateArgs!]!): [Picture]
+  deletePicture(where: PictureWhereUniqueInput!): Picture
+  deletePictures(where: [PictureWhereUniqueInput!]!): [Picture]
   endSession: Boolean!
   authenticateUserWithPassword(
     username: String!
@@ -926,6 +973,14 @@ type Query {
     where: SettingsSingletonWhereUniqueInput!
   ): SettingsSingleton
   settingsSingletonsCount(where: SettingsSingletonWhereInput! = {}): Int
+  pictures(
+    where: PictureWhereInput! = {}
+    orderBy: [PictureOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+  ): [Picture!]
+  picture(where: PictureWhereUniqueInput!): Picture
+  picturesCount(where: PictureWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
 }
