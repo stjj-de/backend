@@ -111,9 +111,11 @@ input UserCreateInput {
 type Person {
   id: ID!
   displayName: String
+  priority: Int
   image: ImageFieldOutput
   role: String
-  priority: Int
+  telephoneNumber: String
+  emailAddress: String
 }
 
 interface ImageFieldOutput {
@@ -144,20 +146,26 @@ input PersonWhereInput {
   id: IDFilter
   displayName: StringFilter
   role: StringFilter
+  telephoneNumber: StringFilter
+  emailAddress: StringFilter
 }
 
 input PersonOrderByInput {
   id: OrderDirection
   displayName: OrderDirection
-  role: OrderDirection
   priority: OrderDirection
+  role: OrderDirection
+  telephoneNumber: OrderDirection
+  emailAddress: OrderDirection
 }
 
 input PersonUpdateInput {
   displayName: String
+  priority: Int
   image: ImageFieldInput
   role: String
-  priority: Int
+  telephoneNumber: String
+  emailAddress: String
 }
 
 input ImageFieldInput {
@@ -177,9 +185,11 @@ input PersonUpdateArgs {
 
 input PersonCreateInput {
   displayName: String
+  priority: Int
   image: ImageFieldInput
   role: String
-  priority: Int
+  telephoneNumber: String
+  emailAddress: String
 }
 
 type Church {
@@ -607,6 +617,13 @@ type SettingsSingleton {
     skip: Int! = 0
   ): [Link!]
   homePageLinksCount(where: LinkWhereInput! = {}): Int
+  footerLinks(
+    where: LinkWhereInput! = {}
+    orderBy: [LinkOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+  ): [Link!]
+  footerLinksCount(where: LinkWhereInput! = {}): Int
   officeSectionContent: SettingsSingleton_officeSectionContent_Document
 }
 
@@ -647,6 +664,7 @@ input SettingsSingletonWhereInput {
   livestreamVideoId: StringFilter
   pastors: PersonManyRelationFilter
   homePageLinks: LinkManyRelationFilter
+  footerLinks: LinkManyRelationFilter
 }
 
 input LinkManyRelationFilter {
@@ -665,6 +683,7 @@ input SettingsSingletonUpdateInput {
   acolyteSchedule: FileFieldInput
   pastors: PersonRelateToManyForUpdateInput
   homePageLinks: LinkRelateToManyForUpdateInput
+  footerLinks: LinkRelateToManyForUpdateInput
   officeSectionContent: JSON
 }
 
@@ -690,6 +709,7 @@ input SettingsSingletonCreateInput {
   acolyteSchedule: FileFieldInput
   pastors: PersonRelateToManyForCreateInput
   homePageLinks: LinkRelateToManyForCreateInput
+  footerLinks: LinkRelateToManyForCreateInput
   officeSectionContent: JSON
 }
 

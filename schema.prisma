@@ -22,6 +22,7 @@ model User {
 model Person {
   id                             String              @id @default(cuid())
   displayName                    String              @default("")
+  priority                       Int?                @default(1)
   image_filesize                 Int?
   image_extension                String?
   image_width                    Int?
@@ -29,7 +30,8 @@ model Person {
   image_mode                     String?
   image_id                       String?
   role                           String              @default("")
-  priority                       Int?                @default(1)
+  telephoneNumber                String              @default("")
+  emailAddress                   String              @default("")
   from_Post_authors              Post[]              @relation("Post_authors")
   from_SettingsSingleton_pastors SettingsSingleton[] @relation("SettingsSingleton_pastors")
 
@@ -69,6 +71,7 @@ model Link {
   emoji                                String              @default("")
   priority                             Int                 @default(1)
   from_SettingsSingleton_homePageLinks SettingsSingleton[] @relation("SettingsSingleton_homePageLinks")
+  from_SettingsSingleton_footerLinks   SettingsSingleton[] @relation("SettingsSingleton_footerLinks")
 }
 
 model CustomPage {
@@ -104,5 +107,6 @@ model SettingsSingleton {
   acolyteSchedule_filename String?
   pastors                  Person[] @relation("SettingsSingleton_pastors")
   homePageLinks            Link[]   @relation("SettingsSingleton_homePageLinks")
+  footerLinks              Link[]   @relation("SettingsSingleton_footerLinks")
   officeSectionContent     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
 }

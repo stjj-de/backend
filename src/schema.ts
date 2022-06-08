@@ -14,6 +14,8 @@ import { Session } from "./auth"
 const isAdminPredicate = ({ session }: { session?: Session }) => session?.data?.isAdmin == true
 const isEditorPredicate = ({ session }: { session?: Session }) => session?.data?.id !== undefined
 
+const isPublishedFilter = ({ session }: { session?: Session }) => isEditorPredicate({ session }) ? {} : { publicationDate: { lte: new Date().toISOString() } }
+
 const slug = (label: string = "Slug") => text({
   label,
   isIndexed: "unique",
@@ -91,6 +93,12 @@ export const lists: Lists = {
           isRequired: true
         }
       }),
+      priority: integer({
+        label: "Priority",
+        defaultValue: 1,
+        isFilterable: false,
+        isIndexed: true
+      }),
       image: image({
         label: "Image"
       }),
@@ -100,11 +108,23 @@ export const lists: Lists = {
           isRequired: true
         }
       }),
-      priority: integer({
-        label: "Priority",
-        defaultValue: 1,
-        isFilterable: false,
-        isIndexed: true
+      telephoneNumber: text({
+        label: "Telephone number",
+        validation: {
+          isRequired: false,
+          match: {
+            regex: /^\+[0-9]([0-9] ?)*$/
+          }
+        }
+      }),
+      emailAddress: text({
+        label: "Email address",
+        validation: {
+          isRequired: false,
+          match: {
+            regex: /^[^@]+@[^@]+\.[^@]+$/
+          }
+        }
       })
     },
     access: {
@@ -378,6 +398,9 @@ export const lists: Lists = {
         query: () => true,
         update: isEditorPredicate,
         delete: isEditorPredicate
+      },
+      filter: {
+        query: isPublishedFilter
       }
     },
     ui: {
@@ -432,6 +455,17 @@ export const lists: Lists = {
         },
         links: true
       })
+    },
+    access: {
+      operation: {
+        create: isEditorPredicate,
+        query: () => true,
+        update: isEditorPredicate,
+        delete: isEditorPredicate
+      },
+      filter: {
+        query: isPublishedFilter
+      }
     }
   }),
 
@@ -456,7 +490,12 @@ export const lists: Lists = {
         many: true
       }),
       homePageLinks: relationship({
-        label: "Home page links",
+        label: "Hero links",
+        ref: "Link",
+        many: true
+      }),
+      footerLinks: relationship({
+        label: "Footer links",
         ref: "Link",
         many: true
       }),
@@ -485,6 +524,14 @@ export const lists: Lists = {
         update: isEditorPredicate,
         delete: () => false
       }
+    },
+    ui: {
+      listView: {
+        initialColumns: ["id"],
+        pageSize: 1
+      },
+      hideDelete: () => true,
+      hideCreate: async ({ session, context }) => !(isAdminPredicate({ session }) && (await context.db.SettingsSingleton.count()) == 0)
     }
   })
 };
