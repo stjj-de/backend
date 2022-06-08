@@ -11,33 +11,6 @@ generator client {
   output   = "node_modules/.prisma/client"
 }
 
-model User {
-  id       String  @id @default(cuid())
-  username String  @unique @default("")
-  forename String  @default("")
-  password String?
-  isAdmin  Boolean @default(false)
-}
-
-model Person {
-  id                             String              @id @default(cuid())
-  displayName                    String              @default("")
-  priority                       Int?                @default(1)
-  image_filesize                 Int?
-  image_extension                String?
-  image_width                    Int?
-  image_height                   Int?
-  image_mode                     String?
-  image_id                       String?
-  role                           String              @default("")
-  telephoneNumber                String              @default("")
-  emailAddress                   String              @default("")
-  from_Post_authors              Post[]              @relation("Post_authors")
-  from_SettingsSingleton_pastors SettingsSingleton[] @relation("SettingsSingleton_pastors")
-
-  @@index([priority])
-}
-
 model Church {
   id                            String              @id @default(cuid())
   name                          String              @default("")
@@ -64,6 +37,13 @@ model ChurchServiceDate {
   @@index([churchId])
 }
 
+model CustomPage {
+  id      String @id @default(cuid())
+  title   String @default("")
+  slug    String @unique @default("")
+  content String @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+}
+
 model Link {
   id                                   String              @id @default(cuid())
   url                                  String              @default("")
@@ -74,11 +54,34 @@ model Link {
   from_SettingsSingleton_footerLinks   SettingsSingleton[] @relation("SettingsSingleton_footerLinks")
 }
 
-model CustomPage {
-  id      String @id @default(cuid())
-  title   String @default("")
-  slug    String @unique @default("")
-  content String @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+model Person {
+  id                             String              @id @default(cuid())
+  displayName                    String              @default("")
+  priority                       Int?                @default(1)
+  image_filesize                 Int?
+  image_extension                String?
+  image_width                    Int?
+  image_height                   Int?
+  image_mode                     String?
+  image_id                       String?
+  role                           String              @default("")
+  telephoneNumber                String              @default("")
+  emailAddress                   String              @default("")
+  from_Post_authors              Post[]              @relation("Post_authors")
+  from_SettingsSingleton_pastors SettingsSingleton[] @relation("SettingsSingleton_pastors")
+
+  @@index([priority])
+}
+
+model Picture {
+  id             String  @id @default(cuid())
+  file_filesize  Int?
+  file_extension String?
+  file_width     Int?
+  file_height    Int?
+  file_mode      String?
+  file_id        String?
+  altText        String  @default("")
 }
 
 model Post {
@@ -89,14 +92,6 @@ model Post {
   authors         Person[]  @relation("Post_authors")
   featured        Boolean   @default(false)
   content         String    @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-}
-
-model Video {
-  id              String   @id @default(cuid())
-  title           String   @default("")
-  youtubeVideoId  String   @default("")
-  publicationDate DateTime
-  description     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
 }
 
 model SettingsSingleton {
@@ -115,13 +110,18 @@ model SettingsSingleton {
   mediaLibraryPageContent  String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
 }
 
-model Picture {
-  id             String  @id @default(cuid())
-  file_filesize  Int?
-  file_extension String?
-  file_width     Int?
-  file_height    Int?
-  file_mode      String?
-  file_id        String?
-  altText        String  @default("")
+model User {
+  id       String  @id @default(cuid())
+  username String  @unique @default("")
+  forename String  @default("")
+  password String?
+  isAdmin  Boolean @default(false)
+}
+
+model Video {
+  id              String   @id @default(cuid())
+  title           String   @default("")
+  youtubeVideoId  String   @default("")
+  publicationDate DateTime
+  description     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
 }
