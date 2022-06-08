@@ -102,6 +102,9 @@ model Video {
 model SettingsSingleton {
   id                       String   @id @default(cuid())
   livestreamVideoId        String   @default("")
+  parishBulletin_filesize  Int?
+  parishBulletin_mode      String?
+  parishBulletin_filename  String?
   acolyteSchedule_filesize Int?
   acolyteSchedule_mode     String?
   acolyteSchedule_filename String?
@@ -109,4 +112,5 @@ model SettingsSingleton {
   homePageLinks            Link[]   @relation("SettingsSingleton_homePageLinks")
   footerLinks              Link[]   @relation("SettingsSingleton_footerLinks")
   officeSectionContent     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  mediaLibraryPageContent  String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
 }

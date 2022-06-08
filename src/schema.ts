@@ -481,6 +481,9 @@ export const lists: Lists = {
           isRequired: false
         }
       }),
+      parishBulletin: file({
+        label: "Parish bulletin"
+      }),
       acolyteSchedule: file({
         label: "Acolyte schedule"
       }),
@@ -507,6 +510,23 @@ export const lists: Lists = {
             blockquote: true
           },
           headingLevels: [2, 3],
+          inlineMarks: {
+            bold: true,
+            italic: true,
+            superscript: true,
+            strikethrough: true
+          }
+        },
+        links: true
+      }),
+      mediaLibraryPageContent: document({
+        label: "»Mediathek« page",
+        formatting: {
+          listTypes: true,
+          blockTypes: {
+            blockquote: true
+          },
+          headingLevels: [1, 2, 3],
           inlineMarks: {
             bold: true,
             italic: true,

@@ -602,6 +602,7 @@ input VideoCreateInput {
 type SettingsSingleton {
   id: ID!
   livestreamVideoId: String
+  parishBulletin: FileFieldOutput
   acolyteSchedule: FileFieldOutput
   pastors(
     where: PersonWhereInput! = {}
@@ -625,6 +626,7 @@ type SettingsSingleton {
   ): [Link!]
   footerLinksCount(where: LinkWhereInput! = {}): Int
   officeSectionContent: SettingsSingleton_officeSectionContent_Document
+  mediaLibraryPageContent: SettingsSingleton_mediaLibraryPageContent_Document
 }
 
 interface FileFieldOutput {
@@ -635,6 +637,10 @@ interface FileFieldOutput {
 }
 
 type SettingsSingleton_officeSectionContent_Document {
+  document(hydrateRelationships: Boolean! = false): JSON!
+}
+
+type SettingsSingleton_mediaLibraryPageContent_Document {
   document(hydrateRelationships: Boolean! = false): JSON!
 }
 
@@ -680,11 +686,13 @@ input SettingsSingletonOrderByInput {
 
 input SettingsSingletonUpdateInput {
   livestreamVideoId: String
+  parishBulletin: FileFieldInput
   acolyteSchedule: FileFieldInput
   pastors: PersonRelateToManyForUpdateInput
   homePageLinks: LinkRelateToManyForUpdateInput
   footerLinks: LinkRelateToManyForUpdateInput
   officeSectionContent: JSON
+  mediaLibraryPageContent: JSON
 }
 
 input FileFieldInput {
@@ -706,11 +714,13 @@ input SettingsSingletonUpdateArgs {
 
 input SettingsSingletonCreateInput {
   livestreamVideoId: String
+  parishBulletin: FileFieldInput
   acolyteSchedule: FileFieldInput
   pastors: PersonRelateToManyForCreateInput
   homePageLinks: LinkRelateToManyForCreateInput
   footerLinks: LinkRelateToManyForCreateInput
   officeSectionContent: JSON
+  mediaLibraryPageContent: JSON
 }
 
 input LinkRelateToManyForCreateInput {
