@@ -30,7 +30,7 @@ export const Person = list({
       validation: {
         isRequired: false,
         match: {
-          regex: /^\+[0-9]([0-9] ?)*$/
+          regex: /^(|\+[0-9]([0-9] ?)*)$/
         }
       }
     }),
@@ -39,7 +39,7 @@ export const Person = list({
       validation: {
         isRequired: false,
         match: {
-          regex: /^[^@]+@[^@]+\.[^@]+$/
+          regex: /^(|[^@]+@[^@]+\.[^@]+)$/
         }
       }
     })
