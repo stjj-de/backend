@@ -45,7 +45,13 @@ export const ChurchServiceDate = list({
   access: {
     operation: {
       create: isEditorPredicate,
-      query: () => true,
+      query: async ({ context }) => {
+        const filter = { date: { lte: new Date().toISOString() } }
+
+        await context.prisma.ChurchServiceDate.deleteMany({ where: filter })
+
+        return true
+      },
       update: isEditorPredicate,
       delete: isEditorPredicate
     }
@@ -55,5 +61,12 @@ export const ChurchServiceDate = list({
       initialColumns: ["date", "shortDescription", "livestreamPlanned"]
     },
     labelField: "shortDescription"
+  },
+  hooks: {
+    validateInput({ addValidationError, resolvedData }) {
+      if (resolvedData.date.toISOString() < new Date().toISOString()) {
+        addValidationError("Date must be in the future")
+      }
+    }
   }
 })
