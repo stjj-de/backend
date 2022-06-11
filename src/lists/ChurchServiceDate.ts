@@ -64,7 +64,7 @@ export const ChurchServiceDate = list({
   },
   hooks: {
     validateInput({ addValidationError, resolvedData }) {
-      if (resolvedData.date.toISOString() < new Date().toISOString()) {
+      if (resolvedData.date !== undefined && resolvedData.date.toISOString() < new Date().toISOString()) {
         addValidationError("Date must be in the future")
       }
     }
