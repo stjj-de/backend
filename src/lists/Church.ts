@@ -1,6 +1,5 @@
 import { list } from "@keystone-6/core"
 import { image, text } from "@keystone-6/core/fields"
-import { document } from "@keystone-6/fields-document"
 import { isEditorPredicate } from "../helpers"
 
 export const Church = list({
@@ -17,20 +16,10 @@ export const Church = list({
         isRequired: true
       }
     }),
-    description: document({
-      label: "Description",
-      formatting: {
-        inlineMarks: {
-          bold: true,
-          italic: true,
-          superscript: true,
-          strikethrough: true
-        }
-      },
-      links: true
-    }),
+    description: text(),
     image: image({
-      label: "Image"
+      label: "Image",
+      storage: "images"
     })
   },
   access: {

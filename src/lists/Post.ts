@@ -1,6 +1,6 @@
 import { list } from "@keystone-6/core"
 import { checkbox, relationship, text, timestamp } from "@keystone-6/core/fields"
-import { fullyEnabledDocument, isEditorPredicate, isPublishedFilter, slug } from "../helpers"
+import { isEditorPredicate, isPublishedFilter, slug } from "../helpers"
 
 export const Post = list({
   fields: {
@@ -25,9 +25,7 @@ export const Post = list({
     featured: checkbox({
       label: "Is featured"
     }),
-    content: fullyEnabledDocument({
-      label: "Content"
-    })
+    content: text()
   },
   access: {
     operation: {

@@ -20,9 +20,11 @@ const { withAuth } = createAuth({
   secretField: 'password',
   sessionData: "id username isAdmin",
   initFirstItem: {
-    fields: ['forename', 'username', 'password'],
-  },
-});
+    fields: ['firstName', 'username', 'password'],
+    itemData: { isAdmin: true },
+    skipKeystoneWelcome: true
+  }
+})
 
 const session = statelessSessions({
   maxAge: 60 * 60 * 24 * 60, // 60 days,

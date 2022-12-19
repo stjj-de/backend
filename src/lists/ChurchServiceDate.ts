@@ -1,6 +1,5 @@
 import { list } from "@keystone-6/core"
 import { checkbox, relationship, text, timestamp } from "@keystone-6/core/fields"
-import { document } from "@keystone-6/fields-document"
 import { isEditorPredicate } from "../helpers"
 
 export const ChurchServiceDate = list({
@@ -14,18 +13,7 @@ export const ChurchServiceDate = list({
         }
       }
     }),
-    longDescription: document({
-      label: "Long description",
-      formatting: {
-        inlineMarks: {
-          bold: true,
-          italic: true,
-          superscript: true,
-          strikethrough: true
-        }
-      },
-      links: true
-    }),
+    longDescription: text(),
     date: timestamp({
       label: "Date",
       validation: {
@@ -45,13 +33,7 @@ export const ChurchServiceDate = list({
   access: {
     operation: {
       create: isEditorPredicate,
-      query: async ({ context }) => {
-        const filter = { date: { lte: new Date().toISOString() } }
-
-        await context.prisma.ChurchServiceDate.deleteMany({ where: filter })
-
-        return true
-      },
+      query: () => true,
       update: isEditorPredicate,
       delete: isEditorPredicate
     }
@@ -66,6 +48,13 @@ export const ChurchServiceDate = list({
     validateInput({ addValidationError, resolvedData }) {
       if (resolvedData.date !== undefined && resolvedData.date.toISOString() < new Date().toISOString()) {
         addValidationError("Date must be in the future")
+      }
+    },
+    async afterOperation({ operation, context }) {
+      if (operation === "create") {
+        // delete old dates
+        const filter = { date: { lte: new Date().toISOString() } }
+        await context.prisma.ChurchServiceDate.deleteMany({ where: filter })
       }
     }
   }

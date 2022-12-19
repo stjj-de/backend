@@ -15,8 +15,8 @@ export const User = list({
         }
       }
     }),
-    forename: text({
-      label: "Forename",
+    firstName: text({
+      label: "First name",
       validation: {
         isRequired: true
       }
@@ -42,7 +42,7 @@ export const User = list({
   ui: {
     isHidden: session => !isAdminPredicate((session)),
     listView: {
-      initialColumns: ["username", "forename", "isAdmin"],
+      initialColumns: ["username", "firstName", "isAdmin"],
       pageSize: 20,
       initialSort: {
         field: "username",
@@ -50,6 +50,6 @@ export const User = list({
       }
     },
     labelField: "username",
-    searchFields: ["username", "forename"]
+    searchFields: ["username", "firstName"]
   }
 })

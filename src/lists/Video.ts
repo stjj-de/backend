@@ -1,6 +1,5 @@
 import { list } from "@keystone-6/core"
-import { text, timestamp } from "@keystone-6/core/fields"
-import { document } from "@keystone-6/fields-document"
+import { json, text, timestamp } from "@keystone-6/core/fields"
 import { isEditorPredicate, isPublishedFilter } from "../helpers"
 
 export const Video = list({
@@ -25,22 +24,10 @@ export const Video = list({
         isRequired: true
       }
     }),
-    description: document({
-      label: "Description",
-      formatting: {
-        listTypes: true,
-        blockTypes: {
-          blockquote: true
-        },
-        headingLevels: [1, 2, 3],
-        inlineMarks: {
-          bold: true,
-          italic: true,
-          superscript: true,
-          strikethrough: true
-        }
-      },
-      links: true
+    description: json({
+      isFilterable: false,
+      isOrderable: false,
+      defaultValue: {}
     })
   },
   access: {

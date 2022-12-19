@@ -5,21 +5,16 @@ type Church {
   id: ID!
   name: String
   location: String
-  description: Church_description_Document
+  description: String
   image: ImageFieldOutput
 }
 
-type Church_description_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
-}
-
-interface ImageFieldOutput {
+type ImageFieldOutput {
   id: ID!
   filesize: Int!
   width: Int!
   height: Int!
   extension: ImageExtension!
-  ref: String!
   url: String!
 }
 
@@ -41,6 +36,7 @@ input ChurchWhereInput {
   id: IDFilter
   name: StringFilter
   location: StringFilter
+  description: StringFilter
 }
 
 input IDFilter {
@@ -86,6 +82,7 @@ input ChurchOrderByInput {
   id: OrderDirection
   name: OrderDirection
   location: OrderDirection
+  description: OrderDirection
 }
 
 enum OrderDirection {
@@ -96,18 +93,15 @@ enum OrderDirection {
 input ChurchUpdateInput {
   name: String
   location: String
-  description: JSON
+  description: String
   image: ImageFieldInput
 }
 
 input ImageFieldInput {
-  upload: Upload
-  ref: String
+  upload: Upload!
 }
 
-"""
-The `Upload` scalar type represents a file upload.
-"""
+"""The `Upload` scalar type represents a file upload."""
 scalar Upload
 
 input ChurchUpdateArgs {
@@ -118,25 +112,20 @@ input ChurchUpdateArgs {
 input ChurchCreateInput {
   name: String
   location: String
-  description: JSON
+  description: String
   image: ImageFieldInput
 }
 
 type ChurchServiceDate {
   id: ID!
   shortDescription: String
-  longDescription: ChurchServiceDate_longDescription_Document
+  longDescription: String
   date: DateTime
   livestreamPlanned: Boolean
   church: Church
 }
 
-type ChurchServiceDate_longDescription_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
-}
-
-scalar DateTime
-  @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
+scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
 
 input ChurchServiceDateWhereUniqueInput {
   id: ID
@@ -148,6 +137,7 @@ input ChurchServiceDateWhereInput {
   NOT: [ChurchServiceDateWhereInput!]
   id: IDFilter
   shortDescription: StringFilter
+  longDescription: StringFilter
   date: DateTimeFilter
   livestreamPlanned: BooleanFilter
   church: ChurchWhereInput
@@ -172,13 +162,14 @@ input BooleanFilter {
 input ChurchServiceDateOrderByInput {
   id: OrderDirection
   shortDescription: OrderDirection
+  longDescription: OrderDirection
   date: OrderDirection
   livestreamPlanned: OrderDirection
 }
 
 input ChurchServiceDateUpdateInput {
   shortDescription: String
-  longDescription: JSON
+  longDescription: String
   date: DateTime
   livestreamPlanned: Boolean
   church: ChurchRelateToOneForUpdateInput
@@ -197,7 +188,7 @@ input ChurchServiceDateUpdateArgs {
 
 input ChurchServiceDateCreateInput {
   shortDescription: String
-  longDescription: JSON
+  longDescription: String
   date: DateTime
   livestreamPlanned: Boolean
   church: ChurchRelateToOneForCreateInput
@@ -212,11 +203,7 @@ type CustomPage {
   id: ID!
   title: String
   slug: String
-  content: CustomPage_content_Document
-}
-
-type CustomPage_content_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
+  content: String
 }
 
 input CustomPageWhereUniqueInput {
@@ -231,18 +218,20 @@ input CustomPageWhereInput {
   id: IDFilter
   title: StringFilter
   slug: StringFilter
+  content: StringFilter
 }
 
 input CustomPageOrderByInput {
   id: OrderDirection
   title: OrderDirection
   slug: OrderDirection
+  content: OrderDirection
 }
 
 input CustomPageUpdateInput {
   title: String
   slug: String
-  content: JSON
+  content: String
 }
 
 input CustomPageUpdateArgs {
@@ -253,7 +242,7 @@ input CustomPageUpdateArgs {
 input CustomPageCreateInput {
   title: String
   slug: String
-  content: JSON
+  content: String
 }
 
 type Link {
@@ -384,26 +373,6 @@ input PictureWhereUniqueInput {
   id: ID
 }
 
-type LocalImageFieldOutput implements ImageFieldOutput {
-  id: ID!
-  filesize: Int!
-  width: Int!
-  height: Int!
-  extension: ImageExtension!
-  ref: String!
-  url: String!
-}
-
-type CloudImageFieldOutput implements ImageFieldOutput {
-  id: ID!
-  filesize: Int!
-  width: Int!
-  height: Int!
-  extension: ImageExtension!
-  ref: String!
-  url: String!
-}
-
 input PictureWhereInput {
   AND: [PictureWhereInput!]
   OR: [PictureWhereInput!]
@@ -437,19 +406,10 @@ type Post {
   title: String
   publicationDate: DateTime
   slug: String
-  authors(
-    where: PersonWhereInput! = {}
-    orderBy: [PersonOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Person!]
+  authors(where: PersonWhereInput! = {}, orderBy: [PersonOrderByInput!]! = [], take: Int, skip: Int! = 0): [Person!]
   authorsCount(where: PersonWhereInput! = {}): Int
   featured: Boolean
-  content: Post_content_Document
-}
-
-type Post_content_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
+  content: String
 }
 
 input PostWhereUniqueInput {
@@ -467,6 +427,7 @@ input PostWhereInput {
   slug: StringFilter
   authors: PersonManyRelationFilter
   featured: BooleanFilter
+  content: StringFilter
 }
 
 input DateTimeNullableFilter {
@@ -492,6 +453,7 @@ input PostOrderByInput {
   publicationDate: OrderDirection
   slug: OrderDirection
   featured: OrderDirection
+  content: OrderDirection
 }
 
 input PostUpdateInput {
@@ -500,7 +462,7 @@ input PostUpdateInput {
   slug: String
   authors: PersonRelateToManyForUpdateInput
   featured: Boolean
-  content: JSON
+  content: String
 }
 
 input PersonRelateToManyForUpdateInput {
@@ -521,7 +483,7 @@ input PostCreateInput {
   slug: String
   authors: PersonRelateToManyForCreateInput
   featured: Boolean
-  content: JSON
+  content: String
 }
 
 input PersonRelateToManyForCreateInput {
@@ -529,139 +491,10 @@ input PersonRelateToManyForCreateInput {
   connect: [PersonWhereUniqueInput!]
 }
 
-type SettingsSingleton {
-  id: ID!
-  livestreamVideoId: String
-  parishBulletin: FileFieldOutput
-  acolyteSchedule: FileFieldOutput
-  pastors(
-    where: PersonWhereInput! = {}
-    orderBy: [PersonOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Person!]
-  pastorsCount(where: PersonWhereInput! = {}): Int
-  homePageLinks(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
-  homePageLinksCount(where: LinkWhereInput! = {}): Int
-  footerLinks(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
-  footerLinksCount(where: LinkWhereInput! = {}): Int
-  officeSectionContent: SettingsSingleton_officeSectionContent_Document
-  mediaLibraryPageContent: SettingsSingleton_mediaLibraryPageContent_Document
-}
-
-interface FileFieldOutput {
-  filename: String!
-  filesize: Int!
-  ref: String!
-  url: String!
-}
-
-type SettingsSingleton_officeSectionContent_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
-}
-
-type SettingsSingleton_mediaLibraryPageContent_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
-}
-
-input SettingsSingletonWhereUniqueInput {
-  id: ID
-}
-
-type LocalFileFieldOutput implements FileFieldOutput {
-  filename: String!
-  filesize: Int!
-  ref: String!
-  url: String!
-}
-
-type CloudFileFieldOutput implements FileFieldOutput {
-  filename: String!
-  filesize: Int!
-  ref: String!
-  url: String!
-}
-
-input SettingsSingletonWhereInput {
-  AND: [SettingsSingletonWhereInput!]
-  OR: [SettingsSingletonWhereInput!]
-  NOT: [SettingsSingletonWhereInput!]
-  id: IDFilter
-  livestreamVideoId: StringFilter
-  pastors: PersonManyRelationFilter
-  homePageLinks: LinkManyRelationFilter
-  footerLinks: LinkManyRelationFilter
-}
-
-input LinkManyRelationFilter {
-  every: LinkWhereInput
-  some: LinkWhereInput
-  none: LinkWhereInput
-}
-
-input SettingsSingletonOrderByInput {
-  id: OrderDirection
-  livestreamVideoId: OrderDirection
-}
-
-input SettingsSingletonUpdateInput {
-  livestreamVideoId: String
-  parishBulletin: FileFieldInput
-  acolyteSchedule: FileFieldInput
-  pastors: PersonRelateToManyForUpdateInput
-  homePageLinks: LinkRelateToManyForUpdateInput
-  footerLinks: LinkRelateToManyForUpdateInput
-  officeSectionContent: JSON
-  mediaLibraryPageContent: JSON
-}
-
-input FileFieldInput {
-  upload: Upload
-  ref: String
-}
-
-input LinkRelateToManyForUpdateInput {
-  disconnect: [LinkWhereUniqueInput!]
-  set: [LinkWhereUniqueInput!]
-  create: [LinkCreateInput!]
-  connect: [LinkWhereUniqueInput!]
-}
-
-input SettingsSingletonUpdateArgs {
-  where: SettingsSingletonWhereUniqueInput!
-  data: SettingsSingletonUpdateInput!
-}
-
-input SettingsSingletonCreateInput {
-  livestreamVideoId: String
-  parishBulletin: FileFieldInput
-  acolyteSchedule: FileFieldInput
-  pastors: PersonRelateToManyForCreateInput
-  homePageLinks: LinkRelateToManyForCreateInput
-  footerLinks: LinkRelateToManyForCreateInput
-  officeSectionContent: JSON
-  mediaLibraryPageContent: JSON
-}
-
-input LinkRelateToManyForCreateInput {
-  create: [LinkCreateInput!]
-  connect: [LinkWhereUniqueInput!]
-}
-
 type User {
   id: ID!
   username: String
-  forename: String
+  firstName: String
   password: PasswordState
   isAdmin: Boolean
 }
@@ -681,7 +514,7 @@ input UserWhereInput {
   NOT: [UserWhereInput!]
   id: IDFilter
   username: StringFilter
-  forename: StringFilter
+  firstName: StringFilter
   password: PasswordFilter
   isAdmin: BooleanFilter
 }
@@ -693,13 +526,13 @@ input PasswordFilter {
 input UserOrderByInput {
   id: OrderDirection
   username: OrderDirection
-  forename: OrderDirection
+  firstName: OrderDirection
   isAdmin: OrderDirection
 }
 
 input UserUpdateInput {
   username: String
-  forename: String
+  firstName: String
   password: String
   isAdmin: Boolean
 }
@@ -711,7 +544,7 @@ input UserUpdateArgs {
 
 input UserCreateInput {
   username: String
-  forename: String
+  firstName: String
   password: String
   isAdmin: Boolean
 }
@@ -721,11 +554,7 @@ type Video {
   title: String
   youtubeVideoId: String
   publicationDate: DateTime
-  description: Video_description_Document
-}
-
-type Video_description_Document {
-  document(hydrateRelationships: Boolean! = false): JSON!
+  description: JSON
 }
 
 input VideoWhereUniqueInput {
@@ -766,13 +595,104 @@ input VideoCreateInput {
   description: JSON
 }
 
+type Settings {
+  id: ID!
+  livestreamVideoId: String
+  parishBulletin: FileFieldOutput
+  acolyteSchedule: FileFieldOutput
+  pastors(where: PersonWhereInput! = {}, orderBy: [PersonOrderByInput!]! = [], take: Int, skip: Int! = 0): [Person!]
+  pastorsCount(where: PersonWhereInput! = {}): Int
+  homePageLinks(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0): [Link!]
+  homePageLinksCount(where: LinkWhereInput! = {}): Int
+  footerLinks(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0): [Link!]
+  footerLinksCount(where: LinkWhereInput! = {}): Int
+  officeSectionContent: String
+  mediaLibraryPageContent: String
+}
+
+type FileFieldOutput {
+  filename: String!
+  filesize: Int!
+  url: String!
+}
+
+input SettingsWhereUniqueInput {
+  id: ID
+}
+
+input SettingsWhereInput {
+  AND: [SettingsWhereInput!]
+  OR: [SettingsWhereInput!]
+  NOT: [SettingsWhereInput!]
+  id: IDFilter
+  livestreamVideoId: StringFilter
+  pastors: PersonManyRelationFilter
+  homePageLinks: LinkManyRelationFilter
+  footerLinks: LinkManyRelationFilter
+  officeSectionContent: StringFilter
+  mediaLibraryPageContent: StringFilter
+}
+
+input LinkManyRelationFilter {
+  every: LinkWhereInput
+  some: LinkWhereInput
+  none: LinkWhereInput
+}
+
+input SettingsOrderByInput {
+  id: OrderDirection
+  livestreamVideoId: OrderDirection
+  officeSectionContent: OrderDirection
+  mediaLibraryPageContent: OrderDirection
+}
+
+input SettingsUpdateInput {
+  livestreamVideoId: String
+  parishBulletin: FileFieldInput
+  acolyteSchedule: FileFieldInput
+  pastors: PersonRelateToManyForUpdateInput
+  homePageLinks: LinkRelateToManyForUpdateInput
+  footerLinks: LinkRelateToManyForUpdateInput
+  officeSectionContent: String
+  mediaLibraryPageContent: String
+}
+
+input FileFieldInput {
+  upload: Upload!
+}
+
+input LinkRelateToManyForUpdateInput {
+  disconnect: [LinkWhereUniqueInput!]
+  set: [LinkWhereUniqueInput!]
+  create: [LinkCreateInput!]
+  connect: [LinkWhereUniqueInput!]
+}
+
+input SettingsUpdateArgs {
+  where: SettingsWhereUniqueInput! = {id: 1}
+  data: SettingsUpdateInput!
+}
+
+input SettingsCreateInput {
+  livestreamVideoId: String
+  parishBulletin: FileFieldInput
+  acolyteSchedule: FileFieldInput
+  pastors: PersonRelateToManyForCreateInput
+  homePageLinks: LinkRelateToManyForCreateInput
+  footerLinks: LinkRelateToManyForCreateInput
+  officeSectionContent: String
+  mediaLibraryPageContent: String
+}
+
+input LinkRelateToManyForCreateInput {
+  create: [LinkCreateInput!]
+  connect: [LinkWhereUniqueInput!]
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSON
-  @specifiedBy(
-    url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf"
-  )
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Mutation {
   createChurch(data: ChurchCreateInput!): Church
@@ -781,31 +701,15 @@ type Mutation {
   updateChurches(data: [ChurchUpdateArgs!]!): [Church]
   deleteChurch(where: ChurchWhereUniqueInput!): Church
   deleteChurches(where: [ChurchWhereUniqueInput!]!): [Church]
-  createChurchServiceDate(
-    data: ChurchServiceDateCreateInput!
-  ): ChurchServiceDate
-  createChurchServiceDates(
-    data: [ChurchServiceDateCreateInput!]!
-  ): [ChurchServiceDate]
-  updateChurchServiceDate(
-    where: ChurchServiceDateWhereUniqueInput!
-    data: ChurchServiceDateUpdateInput!
-  ): ChurchServiceDate
-  updateChurchServiceDates(
-    data: [ChurchServiceDateUpdateArgs!]!
-  ): [ChurchServiceDate]
-  deleteChurchServiceDate(
-    where: ChurchServiceDateWhereUniqueInput!
-  ): ChurchServiceDate
-  deleteChurchServiceDates(
-    where: [ChurchServiceDateWhereUniqueInput!]!
-  ): [ChurchServiceDate]
+  createChurchServiceDate(data: ChurchServiceDateCreateInput!): ChurchServiceDate
+  createChurchServiceDates(data: [ChurchServiceDateCreateInput!]!): [ChurchServiceDate]
+  updateChurchServiceDate(where: ChurchServiceDateWhereUniqueInput!, data: ChurchServiceDateUpdateInput!): ChurchServiceDate
+  updateChurchServiceDates(data: [ChurchServiceDateUpdateArgs!]!): [ChurchServiceDate]
+  deleteChurchServiceDate(where: ChurchServiceDateWhereUniqueInput!): ChurchServiceDate
+  deleteChurchServiceDates(where: [ChurchServiceDateWhereUniqueInput!]!): [ChurchServiceDate]
   createCustomPage(data: CustomPageCreateInput!): CustomPage
   createCustomPages(data: [CustomPageCreateInput!]!): [CustomPage]
-  updateCustomPage(
-    where: CustomPageWhereUniqueInput!
-    data: CustomPageUpdateInput!
-  ): CustomPage
+  updateCustomPage(where: CustomPageWhereUniqueInput!, data: CustomPageUpdateInput!): CustomPage
   updateCustomPages(data: [CustomPageUpdateArgs!]!): [CustomPage]
   deleteCustomPage(where: CustomPageWhereUniqueInput!): CustomPage
   deleteCustomPages(where: [CustomPageWhereUniqueInput!]!): [CustomPage]
@@ -823,10 +727,7 @@ type Mutation {
   deletePeople(where: [PersonWhereUniqueInput!]!): [Person]
   createPicture(data: PictureCreateInput!): Picture
   createPictures(data: [PictureCreateInput!]!): [Picture]
-  updatePicture(
-    where: PictureWhereUniqueInput!
-    data: PictureUpdateInput!
-  ): Picture
+  updatePicture(where: PictureWhereUniqueInput!, data: PictureUpdateInput!): Picture
   updatePictures(data: [PictureUpdateArgs!]!): [Picture]
   deletePicture(where: PictureWhereUniqueInput!): Picture
   deletePictures(where: [PictureWhereUniqueInput!]!): [Picture]
@@ -836,25 +737,6 @@ type Mutation {
   updatePosts(data: [PostUpdateArgs!]!): [Post]
   deletePost(where: PostWhereUniqueInput!): Post
   deletePosts(where: [PostWhereUniqueInput!]!): [Post]
-  createSettingsSingleton(
-    data: SettingsSingletonCreateInput!
-  ): SettingsSingleton
-  createSettingsSingletons(
-    data: [SettingsSingletonCreateInput!]!
-  ): [SettingsSingleton]
-  updateSettingsSingleton(
-    where: SettingsSingletonWhereUniqueInput!
-    data: SettingsSingletonUpdateInput!
-  ): SettingsSingleton
-  updateSettingsSingletons(
-    data: [SettingsSingletonUpdateArgs!]!
-  ): [SettingsSingleton]
-  deleteSettingsSingleton(
-    where: SettingsSingletonWhereUniqueInput!
-  ): SettingsSingleton
-  deleteSettingsSingletons(
-    where: [SettingsSingletonWhereUniqueInput!]!
-  ): [SettingsSingleton]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -867,19 +749,18 @@ type Mutation {
   updateVideos(data: [VideoUpdateArgs!]!): [Video]
   deleteVideo(where: VideoWhereUniqueInput!): Video
   deleteVideos(where: [VideoWhereUniqueInput!]!): [Video]
+  createSettings(data: SettingsCreateInput!): Settings
+  createPluralSettings(data: [SettingsCreateInput!]!): [Settings]
+  updateSettings(where: SettingsWhereUniqueInput! = {id: 1}, data: SettingsUpdateInput!): Settings
+  updatePluralSettings(data: [SettingsUpdateArgs!]!): [Settings]
+  deleteSettings(where: SettingsWhereUniqueInput! = {id: 1}): Settings
+  deletePluralSettings(where: [SettingsWhereUniqueInput!]!): [Settings]
   endSession: Boolean!
-  authenticateUserWithPassword(
-    username: String!
-    password: String!
-  ): UserAuthenticationWithPasswordResult
-  createInitialUser(
-    data: CreateInitialUserInput!
-  ): UserAuthenticationWithPasswordSuccess!
+  authenticateUserWithPassword(username: String!, password: String!): UserAuthenticationWithPasswordResult
+  createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
 }
 
-union UserAuthenticationWithPasswordResult =
-    UserAuthenticationWithPasswordSuccess
-  | UserAuthenticationWithPasswordFailure
+union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
 
 type UserAuthenticationWithPasswordSuccess {
   sessionToken: String!
@@ -892,95 +773,41 @@ type UserAuthenticationWithPasswordFailure {
 
 input CreateInitialUserInput {
   username: String
-  forename: String
+  firstName: String
   password: String
 }
 
 type Query {
-  churches(
-    where: ChurchWhereInput! = {}
-    orderBy: [ChurchOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Church!]
+  churches(where: ChurchWhereInput! = {}, orderBy: [ChurchOrderByInput!]! = [], take: Int, skip: Int! = 0): [Church!]
   church(where: ChurchWhereUniqueInput!): Church
   churchesCount(where: ChurchWhereInput! = {}): Int
-  churchServiceDates(
-    where: ChurchServiceDateWhereInput! = {}
-    orderBy: [ChurchServiceDateOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ChurchServiceDate!]
-  churchServiceDate(
-    where: ChurchServiceDateWhereUniqueInput!
-  ): ChurchServiceDate
+  churchServiceDates(where: ChurchServiceDateWhereInput! = {}, orderBy: [ChurchServiceDateOrderByInput!]! = [], take: Int, skip: Int! = 0): [ChurchServiceDate!]
+  churchServiceDate(where: ChurchServiceDateWhereUniqueInput!): ChurchServiceDate
   churchServiceDatesCount(where: ChurchServiceDateWhereInput! = {}): Int
-  customPages(
-    where: CustomPageWhereInput! = {}
-    orderBy: [CustomPageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [CustomPage!]
+  customPages(where: CustomPageWhereInput! = {}, orderBy: [CustomPageOrderByInput!]! = [], take: Int, skip: Int! = 0): [CustomPage!]
   customPage(where: CustomPageWhereUniqueInput!): CustomPage
   customPagesCount(where: CustomPageWhereInput! = {}): Int
-  links(
-    where: LinkWhereInput! = {}
-    orderBy: [LinkOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Link!]
+  links(where: LinkWhereInput! = {}, orderBy: [LinkOrderByInput!]! = [], take: Int, skip: Int! = 0): [Link!]
   link(where: LinkWhereUniqueInput!): Link
   linksCount(where: LinkWhereInput! = {}): Int
-  people(
-    where: PersonWhereInput! = {}
-    orderBy: [PersonOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Person!]
+  people(where: PersonWhereInput! = {}, orderBy: [PersonOrderByInput!]! = [], take: Int, skip: Int! = 0): [Person!]
   person(where: PersonWhereUniqueInput!): Person
   peopleCount(where: PersonWhereInput! = {}): Int
-  pictures(
-    where: PictureWhereInput! = {}
-    orderBy: [PictureOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Picture!]
+  pictures(where: PictureWhereInput! = {}, orderBy: [PictureOrderByInput!]! = [], take: Int, skip: Int! = 0): [Picture!]
   picture(where: PictureWhereUniqueInput!): Picture
   picturesCount(where: PictureWhereInput! = {}): Int
-  posts(
-    where: PostWhereInput! = {}
-    orderBy: [PostOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Post!]
+  posts(where: PostWhereInput! = {}, orderBy: [PostOrderByInput!]! = [], take: Int, skip: Int! = 0): [Post!]
   post(where: PostWhereUniqueInput!): Post
   postsCount(where: PostWhereInput! = {}): Int
-  settingsSingletons(
-    where: SettingsSingletonWhereInput! = {}
-    orderBy: [SettingsSingletonOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [SettingsSingleton!]
-  settingsSingleton(
-    where: SettingsSingletonWhereUniqueInput!
-  ): SettingsSingleton
-  settingsSingletonsCount(where: SettingsSingletonWhereInput! = {}): Int
-  users(
-    where: UserWhereInput! = {}
-    orderBy: [UserOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [User!]
+  users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0): [User!]
   user(where: UserWhereUniqueInput!): User
   usersCount(where: UserWhereInput! = {}): Int
-  videos(
-    where: VideoWhereInput! = {}
-    orderBy: [VideoOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [Video!]
+  videos(where: VideoWhereInput! = {}, orderBy: [VideoOrderByInput!]! = [], take: Int, skip: Int! = 0): [Video!]
   video(where: VideoWhereUniqueInput!): Video
   videosCount(where: VideoWhereInput! = {}): Int
+  pluralSettings(where: SettingsWhereInput! = {id: {equals: 1}}, orderBy: [SettingsOrderByInput!]! = [], take: Int, skip: Int! = 0): [Settings!]
+  settings(where: SettingsWhereUniqueInput! = {id: 1}): Settings
+  pluralSettingsCount(where: SettingsWhereInput! = {id: {equals: 1}}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
 }
@@ -992,8 +819,6 @@ type KeystoneMeta {
 }
 
 type KeystoneAdminMeta {
-  enableSignout: Boolean!
-  enableSessionItem: Boolean!
   lists: [KeystoneAdminUIListMeta!]!
   list(key: String!): KeystoneAdminUIListMeta
 }
@@ -1013,13 +838,16 @@ type KeystoneAdminUIListMeta {
   pageSize: Int!
   labelField: String!
   fields: [KeystoneAdminUIFieldMeta!]!
+  groups: [KeystoneAdminUIFieldGroupMeta!]!
   initialSort: KeystoneAdminUISort
   isHidden: Boolean!
+  isSingleton: Boolean!
 }
 
 type KeystoneAdminUIFieldMeta {
   path: String!
   label: String!
+  description: String
   isOrderable: Boolean!
   isFilterable: Boolean!
   fieldMeta: JSON
@@ -1051,6 +879,7 @@ enum KeystoneAdminUIFieldMetaListViewFieldMode {
 
 type KeystoneAdminUIFieldMetaItemView {
   fieldMode: KeystoneAdminUIFieldMetaItemViewFieldMode
+  fieldPosition: KeystoneAdminUIFieldMetaItemViewFieldPosition
 }
 
 enum KeystoneAdminUIFieldMetaItemViewFieldMode {
@@ -1059,9 +888,20 @@ enum KeystoneAdminUIFieldMetaItemViewFieldMode {
   hidden
 }
 
+enum KeystoneAdminUIFieldMetaItemViewFieldPosition {
+  form
+  sidebar
+}
+
 enum QueryMode {
   default
   insensitive
+}
+
+type KeystoneAdminUIFieldGroupMeta {
+  label: String!
+  description: String
+  fields: [KeystoneAdminUIFieldMeta!]!
 }
 
 type KeystoneAdminUISort {

@@ -1,6 +1,6 @@
 import { list } from "@keystone-6/core"
 import { text } from "@keystone-6/core/fields"
-import { fullyEnabledDocument, isAdminPredicate, isEditorPredicate, slug } from "../helpers"
+import { isAdminPredicate, isEditorPredicate, slug } from "../helpers"
 
 export const CustomPage = list({
   fields: {
@@ -11,9 +11,7 @@ export const CustomPage = list({
       }
     }),
     slug: slug(),
-    content: fullyEnabledDocument({
-      label: "Content"
-    })
+    content: text()
   },
   access: {
     operation: {

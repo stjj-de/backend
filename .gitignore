@@ -1,5 +1,5 @@
-/.idea/
-/node_modules/
-/.keystone/
+.idea/
+node_modules/
+.keystone/
 /data/
 *.log

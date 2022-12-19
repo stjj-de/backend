@@ -17,7 +17,8 @@ export const Person = list({
       isIndexed: true
     }),
     image: image({
-      label: "Image"
+      label: "Image",
+      storage: "images"
     }),
     role: text({
       label: "Role",

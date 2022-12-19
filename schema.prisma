@@ -2,8 +2,9 @@
 // Modify your Keystone config when you want to change this.
 
 datasource sqlite {
-  url      = env("DATABASE_URL")
-  provider = "sqlite"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider          = "sqlite"
 }
 
 generator client {
@@ -15,12 +16,11 @@ model Church {
   id                            String              @id @default(cuid())
   name                          String              @default("")
   location                      String              @default("")
-  description                   String              @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  description                   String              @default("")
   image_filesize                Int?
   image_extension               String?
   image_width                   Int?
   image_height                  Int?
-  image_mode                    String?
   image_id                      String?
   from_ChurchServiceDate_church ChurchServiceDate[] @relation("ChurchServiceDate_church")
 }
@@ -28,7 +28,7 @@ model Church {
 model ChurchServiceDate {
   id                String   @id @default(cuid())
   shortDescription  String   @default("")
-  longDescription   String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  longDescription   String   @default("")
   date              DateTime
   livestreamPlanned Boolean  @default(false)
   church            Church?  @relation("ChurchServiceDate_church", fields: [churchId], references: [id])
@@ -41,34 +41,33 @@ model CustomPage {
   id      String @id @default(cuid())
   title   String @default("")
   slug    String @unique @default("")
-  content String @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  content String @default("")
 }
 
 model Link {
-  id                                   String              @id @default(cuid())
-  url                                  String              @default("")
-  text                                 String              @default("")
-  emoji                                String              @default("")
-  priority                             Int                 @default(1)
-  from_SettingsSingleton_homePageLinks SettingsSingleton[] @relation("SettingsSingleton_homePageLinks")
-  from_SettingsSingleton_footerLinks   SettingsSingleton[] @relation("SettingsSingleton_footerLinks")
+  id                          String     @id @default(cuid())
+  url                         String     @default("")
+  text                        String     @default("")
+  emoji                       String     @default("")
+  priority                    Int        @default(1)
+  from_Settings_homePageLinks Settings[] @relation("Settings_homePageLinks")
+  from_Settings_footerLinks   Settings[] @relation("Settings_footerLinks")
 }
 
 model Person {
-  id                             String              @id @default(cuid())
-  displayName                    String              @default("")
-  priority                       Int?                @default(1)
-  image_filesize                 Int?
-  image_extension                String?
-  image_width                    Int?
-  image_height                   Int?
-  image_mode                     String?
-  image_id                       String?
-  role                           String              @default("")
-  telephoneNumber                String              @default("")
-  emailAddress                   String              @default("")
-  from_Post_authors              Post[]              @relation("Post_authors")
-  from_SettingsSingleton_pastors SettingsSingleton[] @relation("SettingsSingleton_pastors")
+  id                    String     @id @default(cuid())
+  displayName           String     @default("")
+  priority              Int?       @default(1)
+  image_filesize        Int?
+  image_extension       String?
+  image_width           Int?
+  image_height          Int?
+  image_id              String?
+  role                  String     @default("")
+  telephoneNumber       String     @default("")
+  emailAddress          String     @default("")
+  from_Post_authors     Post[]     @relation("Post_authors")
+  from_Settings_pastors Settings[] @relation("Settings_pastors")
 
   @@index([priority])
 }
@@ -79,7 +78,6 @@ model Picture {
   file_extension String?
   file_width     Int?
   file_height    Int?
-  file_mode      String?
   file_id        String?
   altText        String  @default("")
 }
@@ -91,31 +89,15 @@ model Post {
   slug            String    @unique @default("")
   authors         Person[]  @relation("Post_authors")
   featured        Boolean   @default(false)
-  content         String    @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-}
-
-model SettingsSingleton {
-  id                       String   @id @default(cuid())
-  livestreamVideoId        String   @default("")
-  parishBulletin_filesize  Int?
-  parishBulletin_mode      String?
-  parishBulletin_filename  String?
-  acolyteSchedule_filesize Int?
-  acolyteSchedule_mode     String?
-  acolyteSchedule_filename String?
-  pastors                  Person[] @relation("SettingsSingleton_pastors")
-  homePageLinks            Link[]   @relation("SettingsSingleton_homePageLinks")
-  footerLinks              Link[]   @relation("SettingsSingleton_footerLinks")
-  officeSectionContent     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-  mediaLibraryPageContent  String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  content         String    @default("")
 }
 
 model User {
-  id       String  @id @default(cuid())
-  username String  @unique @default("")
-  forename String  @default("")
-  password String?
-  isAdmin  Boolean @default(false)
+  id        String  @id @default(cuid())
+  username  String  @unique @default("")
+  firstName String  @default("")
+  password  String?
+  isAdmin   Boolean @default(false)
 }
 
 model Video {
@@ -123,5 +105,19 @@ model Video {
   title           String   @default("")
   youtubeVideoId  String   @default("")
   publicationDate DateTime
-  description     String   @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  description     String?  @default("{}")
+}
+
+model Settings {
+  id                       Int      @id
+  livestreamVideoId        String   @default("")
+  parishBulletin_filesize  Int?
+  parishBulletin_filename  String?
+  acolyteSchedule_filesize Int?
+  acolyteSchedule_filename String?
+  pastors                  Person[] @relation("Settings_pastors")
+  homePageLinks            Link[]   @relation("Settings_homePageLinks")
+  footerLinks              Link[]   @relation("Settings_footerLinks")
+  officeSectionContent     String   @default("")
+  mediaLibraryPageContent  String   @default("")
 }
